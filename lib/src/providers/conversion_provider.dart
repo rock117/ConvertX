@@ -274,8 +274,8 @@ class ConversionNotifier {
       }
     }
 
-    // Clear input file list after conversion
-    ref.read(fileListProvider.notifier).clear();
+    // Keep selected input files after conversion so users can run repeated conversions
+    // (e.g., convert again or convert to another format).
   }
 
   Future<void> openOutputFolder(String path) async {
