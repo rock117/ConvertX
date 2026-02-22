@@ -36,6 +36,7 @@ Current focus areas:
 
 - Image conversion
 - Text/document conversion
+- Video to Audio extraction (via FFmpeg)
 - EPUB -> PDF (via external tools)
 - Clear conversion progress and error feedback
 
@@ -51,10 +52,11 @@ Current focus areas:
 | Office (via pandoc) | `docx/pptx` | `md` | Word/PowerPoint to Markdown |
 | PDF (via Chromium) | `md` | `pdf` | Markdown to PDF |
 | Ebook | `epub` | `pdf` | Requires `pandoc` or `ebook-convert` |
+| Video | `mp4/avi/mkv/mov/webm/flv` | `mp3/wav/aac/flac` | Extract audio from video (Requires `ffmpeg`) |
 
 ### Planned
 
-- [ ] Generic document -> PDF (currently only `epub -> pdf`)
+- [ ] Generument -> PDF (currently only `epub -> pdf`)
 - [ ] Audio/video conversion (planned with FFmpeg)
 - [ ] PDF input parsing/conversion
 - [ ] More batch processing and advanced options
@@ -107,6 +109,22 @@ cd ..
 
 # Run app
 flutter run -d windows
+```
+
+## Media Conversion Dependencies
+
+`video -> audio` extraction requires **FFmpeg**.
+
+### Verify Installation
+
+```powershell
+ffmpeg -version
+```
+
+### Windows Installation
+
+```powershell
+winget install ffmpeg
 ```
 
 ## EPUB -> PDF Dependencies

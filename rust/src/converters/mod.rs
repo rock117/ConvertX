@@ -1,5 +1,6 @@
 pub mod image;
 pub mod document;
+pub mod media;
 
 use crate::api::{ConvertOptions, ConvertResult};
 
@@ -28,12 +29,8 @@ pub fn convert_single(
             document::convert_document(input_path, output_dir, options)
         }
         Some(crate::api::FileType::Audio) | Some(crate::api::FileType::Video) => {
-            // 音视频转换需要 FFmpeg，后续实现
-            ConvertResult {
-                success: false,
-                output_path: None,
-                error: Some("音视频转换功能开发中...".to_string()),
-            }
+            // 音视频转换 (依赖 FFmpeg)
+            media::convert_media(input_path, output_dir, options)
         }
         None => ConvertResult {
             success: false,

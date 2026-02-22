@@ -7,480 +7,659 @@ import 'api.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
-import 'frb_generated.io.dart' if (dart.library.js_interop) 'frb_generated.web.dart';
+import 'frb_generated.io.dart'
+    if (dart.library.js_interop) 'frb_generated.web.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-
-                /// Main entrypoint of the Rust API
-                class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
-                  @internal
-                  static final instance = RustLib._();
-
-                  RustLib._();
-
-                  /// Initialize flutter_rust_bridge
-                  static Future<void> init({
-                    RustLibApi? api,
-                    BaseHandler? handler,
-                    ExternalLibrary? externalLibrary,
-                    bool forceSameCodegenVersion = true,
-                  }) async {
-                    await instance.initImpl(
-                      api: api,
-                      handler: handler,
-                      externalLibrary: externalLibrary,
-                      forceSameCodegenVersion: forceSameCodegenVersion,
-                    );
-                  }
-
-                  /// Initialize flutter_rust_bridge in mock mode.
-                  /// No libraries for FFI are loaded.
-                  static void initMock({
-                    required RustLibApi api,
-                  }) {
-                    instance.initMockImpl(
-                      api: api,
-                    );
-                  }
-
-                  /// Dispose flutter_rust_bridge
-                  ///
-                  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
-                  /// is automatically disposed when the app stops.
-                  static void dispose() => instance.disposeImpl();
-
-                  @override
-                  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor => RustLibApiImpl.new;
-
-                  @override
-                  WireConstructor<RustLibWire> get wireConstructor => RustLibWire.fromExternalLibrary;
-
-                  @override
-                  Future<void> executeRustInitializers() async {
-                    
-                  }
-
-                  @override
-                  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig => kDefaultExternalLibraryLoaderConfig;
-
-                  @override
-                  String get codegenVersion => '2.11.1';
-
-                  @override
-                  int get rustContentHash => 545976053;
-
-                  static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
-                    stem: 'convertx_core',
-                    ioDirectory: 'rust/target/release/',
-                    webPrefix: 'pkg/',
-                  );
-                }
-                
-
-                abstract class RustLibApi extends BaseApi {
-                  Future<ConvertResult> crateApiConvertFile({required String inputPath , required String outputDir , required ConvertOptions options });
-
-Future<List<ConvertResult>> crateApiConvertFiles({required List<String> inputPaths , required String outputDir , required ConvertOptions options });
-
-Future<FileType?> crateApiDetectFileType({required String filePath });
-
-Future<List<String>> crateApiGetSupportedOutputFormats({required FileType fileType });
-
-Future<List<String>> crateApiGetSupportedOutputFormatsForFile({required String filePath });
-
-Future<bool> crateApiOpenFolder({required String folderPath });
-
-
-                }
-                
-
-                class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
-                  RustLibApiImpl({
-                    required super.handler,
-                    required super.wire,
-                    required super.generalizedFrbRustBinding,
-                    required super.portManager,
-                  });
-
-                  @override Future<ConvertResult> crateApiConvertFile({required String inputPath , required String outputDir , required ConvertOptions options })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(inputPath, serializer);
-sse_encode_String(outputDir, serializer);
-sse_encode_box_autoadd_convert_options(options, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_convert_result,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiConvertFileConstMeta,
-            argValues: [inputPath, outputDir, options],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiConvertFileConstMeta => const TaskConstMeta(
-            debugName: "convert_file",
-            argNames: ["inputPath", "outputDir", "options"],
-        );
-        
-
-@override Future<List<ConvertResult>> crateApiConvertFiles({required List<String> inputPaths , required String outputDir , required ConvertOptions options })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_list_String(inputPaths, serializer);
-sse_encode_String(outputDir, serializer);
-sse_encode_box_autoadd_convert_options(options, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_list_convert_result,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiConvertFilesConstMeta,
-            argValues: [inputPaths, outputDir, options],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiConvertFilesConstMeta => const TaskConstMeta(
-            debugName: "convert_files",
-            argNames: ["inputPaths", "outputDir", "options"],
-        );
-        
-
-@override Future<FileType?> crateApiDetectFileType({required String filePath })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(filePath, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_opt_box_autoadd_file_type,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiDetectFileTypeConstMeta,
-            argValues: [filePath],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiDetectFileTypeConstMeta => const TaskConstMeta(
-            debugName: "detect_file_type",
-            argNames: ["filePath"],
-        );
-        
-
-@override Future<List<String>> crateApiGetSupportedOutputFormats({required FileType fileType })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_file_type(fileType, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_list_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiGetSupportedOutputFormatsConstMeta,
-            argValues: [fileType],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiGetSupportedOutputFormatsConstMeta => const TaskConstMeta(
-            debugName: "get_supported_output_formats",
-            argNames: ["fileType"],
-        );
-        
-
-@override Future<List<String>> crateApiGetSupportedOutputFormatsForFile({required String filePath })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(filePath, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_list_String,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiGetSupportedOutputFormatsForFileConstMeta,
-            argValues: [filePath],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiGetSupportedOutputFormatsForFileConstMeta => const TaskConstMeta(
-            debugName: "get_supported_output_formats_for_file",
-            argNames: ["filePath"],
-        );
-        
-
-@override Future<bool> crateApiOpenFolder({required String folderPath })  { return handler.executeNormal(NormalTask(
-            callFfi: (port_) {
-              
-            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(folderPath, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6, port: port_);
-            
-            },
-            codec: 
-        SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: null,
-        )
-        ,
-            constMeta: kCrateApiOpenFolderConstMeta,
-            argValues: [folderPath],
-            apiImpl: this,
-        )); }
-
-
-        TaskConstMeta get kCrateApiOpenFolderConstMeta => const TaskConstMeta(
-            debugName: "open_folder",
-            argNames: ["folderPath"],
-        );
-        
-
-
-
-                  @protected String dco_decode_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as String; }
-
-@protected bool dco_decode_bool(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as bool; }
-
-@protected ConvertOptions dco_decode_box_autoadd_convert_options(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_convert_options(raw); }
-
-@protected FileType dco_decode_box_autoadd_file_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return dco_decode_file_type(raw); }
-
-@protected int dco_decode_box_autoadd_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected ConvertOptions dco_decode_convert_options(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 4) throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-                return ConvertOptions(outputFormat: dco_decode_String(arr[0]),
-quality: dco_decode_opt_box_autoadd_i_32(arr[1]),
-width: dco_decode_opt_box_autoadd_i_32(arr[2]),
-height: dco_decode_opt_box_autoadd_i_32(arr[3]),); }
-
-@protected ConvertResult dco_decode_convert_result(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-final arr = raw as List<dynamic>;
-                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-                return ConvertResult(success: dco_decode_bool(arr[0]),
-outputPath: dco_decode_opt_String(arr[1]),
-error: dco_decode_opt_String(arr[2]),); }
-
-@protected FileType dco_decode_file_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return FileType.values[raw as int]; }
-
-@protected int dco_decode_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected List<String> dco_decode_list_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_String).toList(); }
-
-@protected List<ConvertResult> dco_decode_list_convert_result(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return (raw as List<dynamic>).map(dco_decode_convert_result).toList(); }
-
-@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as Uint8List; }
-
-@protected String? dco_decode_opt_String(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_String(raw); }
-
-@protected FileType? dco_decode_opt_box_autoadd_file_type(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_file_type(raw); }
-
-@protected int? dco_decode_opt_box_autoadd_i_32(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw == null ? null : dco_decode_box_autoadd_i_32(raw); }
-
-@protected int dco_decode_u_8(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return raw as int; }
-
-@protected void dco_decode_unit(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
-return; }
-
-@protected String sse_decode_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_list_prim_u_8_strict(deserializer);
-        return utf8.decoder.convert(inner); }
-
-@protected bool sse_decode_bool(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getUint8() != 0; }
-
-@protected ConvertOptions sse_decode_box_autoadd_convert_options(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_convert_options(deserializer)); }
-
-@protected FileType sse_decode_box_autoadd_file_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_file_type(deserializer)); }
-
-@protected int sse_decode_box_autoadd_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return (sse_decode_i_32(deserializer)); }
-
-@protected ConvertOptions sse_decode_convert_options(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_outputFormat = sse_decode_String(deserializer);
-var var_quality = sse_decode_opt_box_autoadd_i_32(deserializer);
-var var_width = sse_decode_opt_box_autoadd_i_32(deserializer);
-var var_height = sse_decode_opt_box_autoadd_i_32(deserializer);
-return ConvertOptions(outputFormat: var_outputFormat, quality: var_quality, width: var_width, height: var_height); }
-
-@protected ConvertResult sse_decode_convert_result(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var var_success = sse_decode_bool(deserializer);
-var var_outputPath = sse_decode_opt_String(deserializer);
-var var_error = sse_decode_opt_String(deserializer);
-return ConvertResult(success: var_success, outputPath: var_outputPath, error: var_error); }
-
-@protected FileType sse_decode_file_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var inner = sse_decode_i_32(deserializer);
-        return FileType.values[inner]; }
-
-@protected int sse_decode_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getInt32(); }
-
-@protected List<String> sse_decode_list_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <String>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_String(deserializer)); }
-        return ans_;
-         }
-
-@protected List<ConvertResult> sse_decode_list_convert_result(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-        var len_ = sse_decode_i_32(deserializer);
-        var ans_ = <ConvertResult>[];
-        for (var idx_ = 0; idx_ < len_; ++idx_) { ans_.add(sse_decode_convert_result(deserializer)); }
-        return ans_;
-         }
-
-@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-var len_ = sse_decode_i_32(deserializer);
-                return deserializer.buffer.getUint8List(len_); }
-
-@protected String? sse_decode_opt_String(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_String(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected FileType? sse_decode_opt_box_autoadd_file_type(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_file_type(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-            if (sse_decode_bool(deserializer)) {
-                return (sse_decode_box_autoadd_i_32(deserializer));
-            } else {
-                return null;
-            }
-             }
-
-@protected int sse_decode_u_8(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-return deserializer.buffer.getUint8(); }
-
-@protected void sse_decode_unit(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
- }
-
-@protected void sse_encode_String(String self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer); }
-
-@protected void sse_encode_bool(bool self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putUint8(self ? 1 : 0); }
-
-@protected void sse_encode_box_autoadd_convert_options(ConvertOptions self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_convert_options(self, serializer); }
-
-@protected void sse_encode_box_autoadd_file_type(FileType self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_file_type(self, serializer); }
-
-@protected void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self, serializer); }
-
-@protected void sse_encode_convert_options(ConvertOptions self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_String(self.outputFormat, serializer);
-sse_encode_opt_box_autoadd_i_32(self.quality, serializer);
-sse_encode_opt_box_autoadd_i_32(self.width, serializer);
-sse_encode_opt_box_autoadd_i_32(self.height, serializer);
- }
-
-@protected void sse_encode_convert_result(ConvertResult self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_bool(self.success, serializer);
-sse_encode_opt_String(self.outputPath, serializer);
-sse_encode_opt_String(self.error, serializer);
- }
-
-@protected void sse_encode_file_type(FileType self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.index, serializer); }
-
-@protected void sse_encode_i_32(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putInt32(self); }
-
-@protected void sse_encode_list_String(List<String> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_String(item, serializer); } }
-
-@protected void sse_encode_list_convert_result(List<ConvertResult> self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-        for (final item in self) { sse_encode_convert_result(item, serializer); } }
-
-@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-sse_encode_i_32(self.length, serializer);
-                    serializer.buffer.putUint8List(self); }
-
-@protected void sse_encode_opt_String(String? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_String(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_file_type(FileType? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_file_type(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-
-                sse_encode_bool(self != null, serializer);
-                if (self != null) {
-                    sse_encode_box_autoadd_i_32(self, serializer);
-                }
-                 }
-
-@protected void sse_encode_u_8(int self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-serializer.buffer.putUint8(self); }
-
-@protected void sse_encode_unit(void self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
- }
-                }
-                
+/// Main entrypoint of the Rust API
+class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
+  @internal
+  static final instance = RustLib._();
+
+  RustLib._();
+
+  /// Initialize flutter_rust_bridge
+  static Future<void> init({
+    RustLibApi? api,
+    BaseHandler? handler,
+    ExternalLibrary? externalLibrary,
+    bool forceSameCodegenVersion = true,
+  }) async {
+    await instance.initImpl(
+      api: api,
+      handler: handler,
+      externalLibrary: externalLibrary,
+      forceSameCodegenVersion: forceSameCodegenVersion,
+    );
+  }
+
+  /// Initialize flutter_rust_bridge in mock mode.
+  /// No libraries for FFI are loaded.
+  static void initMock({
+    required RustLibApi api,
+  }) {
+    instance.initMockImpl(
+      api: api,
+    );
+  }
+
+  /// Dispose flutter_rust_bridge
+  ///
+  /// The call to this function is optional, since flutter_rust_bridge (and everything else)
+  /// is automatically disposed when the app stops.
+  static void dispose() => instance.disposeImpl();
+
+  @override
+  ApiImplConstructor<RustLibApiImpl, RustLibWire> get apiImplConstructor =>
+      RustLibApiImpl.new;
+
+  @override
+  WireConstructor<RustLibWire> get wireConstructor =>
+      RustLibWire.fromExternalLibrary;
+
+  @override
+  Future<void> executeRustInitializers() async {}
+
+  @override
+  ExternalLibraryLoaderConfig get defaultExternalLibraryLoaderConfig =>
+      kDefaultExternalLibraryLoaderConfig;
+
+  @override
+  String get codegenVersion => '2.11.1';
+
+  @override
+  int get rustContentHash => 545976053;
+
+  static const kDefaultExternalLibraryLoaderConfig =
+      ExternalLibraryLoaderConfig(
+    stem: 'convertx_core',
+    ioDirectory: 'rust/target/release/',
+    webPrefix: 'pkg/',
+  );
+}
+
+abstract class RustLibApi extends BaseApi {
+  Future<ConvertResult> crateApiConvertFile(
+      {required String inputPath,
+      required String outputDir,
+      required ConvertOptions options});
+
+  Future<List<ConvertResult>> crateApiConvertFiles(
+      {required List<String> inputPaths,
+      required String outputDir,
+      required ConvertOptions options});
+
+  Future<FileType?> crateApiDetectFileType({required String filePath});
+
+  Future<List<String>> crateApiGetSupportedOutputFormats(
+      {required FileType fileType});
+
+  Future<List<String>> crateApiGetSupportedOutputFormatsForFile(
+      {required String filePath});
+
+  Future<bool> crateApiOpenFolder({required String folderPath});
+}
+
+class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
+  RustLibApiImpl({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
+
+  @override
+  Future<ConvertResult> crateApiConvertFile(
+      {required String inputPath,
+      required String outputDir,
+      required ConvertOptions options}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(inputPath, serializer);
+        sse_encode_String(outputDir, serializer);
+        sse_encode_box_autoadd_convert_options(options, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 1, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_convert_result,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiConvertFileConstMeta,
+      argValues: [inputPath, outputDir, options],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiConvertFileConstMeta => const TaskConstMeta(
+        debugName: "convert_file",
+        argNames: ["inputPath", "outputDir", "options"],
+      );
+
+  @override
+  Future<List<ConvertResult>> crateApiConvertFiles(
+      {required List<String> inputPaths,
+      required String outputDir,
+      required ConvertOptions options}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_list_String(inputPaths, serializer);
+        sse_encode_String(outputDir, serializer);
+        sse_encode_box_autoadd_convert_options(options, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 2, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_convert_result,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiConvertFilesConstMeta,
+      argValues: [inputPaths, outputDir, options],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiConvertFilesConstMeta => const TaskConstMeta(
+        debugName: "convert_files",
+        argNames: ["inputPaths", "outputDir", "options"],
+      );
+
+  @override
+  Future<FileType?> crateApiDetectFileType({required String filePath}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(filePath, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 3, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_box_autoadd_file_type,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiDetectFileTypeConstMeta,
+      argValues: [filePath],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiDetectFileTypeConstMeta => const TaskConstMeta(
+        debugName: "detect_file_type",
+        argNames: ["filePath"],
+      );
+
+  @override
+  Future<List<String>> crateApiGetSupportedOutputFormats(
+      {required FileType fileType}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_file_type(fileType, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 4, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiGetSupportedOutputFormatsConstMeta,
+      argValues: [fileType],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGetSupportedOutputFormatsConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_supported_output_formats",
+        argNames: ["fileType"],
+      );
+
+  @override
+  Future<List<String>> crateApiGetSupportedOutputFormatsForFile(
+      {required String filePath}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(filePath, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 5, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_String,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiGetSupportedOutputFormatsForFileConstMeta,
+      argValues: [filePath],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiGetSupportedOutputFormatsForFileConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_supported_output_formats_for_file",
+        argNames: ["filePath"],
+      );
+
+  @override
+  Future<bool> crateApiOpenFolder({required String folderPath}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(folderPath, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 6, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiOpenFolderConstMeta,
+      argValues: [folderPath],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiOpenFolderConstMeta => const TaskConstMeta(
+        debugName: "open_folder",
+        argNames: ["folderPath"],
+      );
+
+  @protected
+  String dco_decode_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as String;
+  }
+
+  @protected
+  bool dco_decode_bool(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as bool;
+  }
+
+  @protected
+  ConvertOptions dco_decode_box_autoadd_convert_options(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_convert_options(raw);
+  }
+
+  @protected
+  FileType dco_decode_box_autoadd_file_type(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_file_type(raw);
+  }
+
+  @protected
+  int dco_decode_box_autoadd_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  ConvertOptions dco_decode_convert_options(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return ConvertOptions(
+      outputFormat: dco_decode_String(arr[0]),
+      quality: dco_decode_opt_box_autoadd_i_32(arr[1]),
+      width: dco_decode_opt_box_autoadd_i_32(arr[2]),
+      height: dco_decode_opt_box_autoadd_i_32(arr[3]),
+      ffmpegPath: dco_decode_opt_String(arr[4]),
+    );
+  }
+
+  @protected
+  ConvertResult dco_decode_convert_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ConvertResult(
+      success: dco_decode_bool(arr[0]),
+      outputPath: dco_decode_opt_String(arr[1]),
+      error: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
+  FileType dco_decode_file_type(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return FileType.values[raw as int];
+  }
+
+  @protected
+  int dco_decode_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_String).toList();
+  }
+
+  @protected
+  List<ConvertResult> dco_decode_list_convert_result(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_convert_result).toList();
+  }
+
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as Uint8List;
+  }
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  FileType? dco_decode_opt_box_autoadd_file_type(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_file_type(raw);
+  }
+
+  @protected
+  int? dco_decode_opt_box_autoadd_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_i_32(raw);
+  }
+
+  @protected
+  int dco_decode_u_8(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  void dco_decode_unit(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return;
+  }
+
+  @protected
+  String sse_decode_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_list_prim_u_8_strict(deserializer);
+    return utf8.decoder.convert(inner);
+  }
+
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  ConvertOptions sse_decode_box_autoadd_convert_options(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_convert_options(deserializer));
+  }
+
+  @protected
+  FileType sse_decode_box_autoadd_file_type(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_file_type(deserializer));
+  }
+
+  @protected
+  int sse_decode_box_autoadd_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_i_32(deserializer));
+  }
+
+  @protected
+  ConvertOptions sse_decode_convert_options(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_outputFormat = sse_decode_String(deserializer);
+    var var_quality = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_width = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_height = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_ffmpegPath = sse_decode_opt_String(deserializer);
+    return ConvertOptions(
+        outputFormat: var_outputFormat,
+        quality: var_quality,
+        width: var_width,
+        height: var_height,
+        ffmpegPath: var_ffmpegPath);
+  }
+
+  @protected
+  ConvertResult sse_decode_convert_result(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_success = sse_decode_bool(deserializer);
+    var var_outputPath = sse_decode_opt_String(deserializer);
+    var var_error = sse_decode_opt_String(deserializer);
+    return ConvertResult(
+        success: var_success, outputPath: var_outputPath, error: var_error);
+  }
+
+  @protected
+  FileType sse_decode_file_type(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return FileType.values[inner];
+  }
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
+  }
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ConvertResult> sse_decode_list_convert_result(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ConvertResult>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_convert_result(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var len_ = sse_decode_i_32(deserializer);
+    return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  FileType? sse_decode_opt_box_autoadd_file_type(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_file_type(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_i_32(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getUint8();
+  }
+
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
+  }
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_convert_options(
+      ConvertOptions self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_convert_options(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_file_type(
+      FileType self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_file_type(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self, serializer);
+  }
+
+  @protected
+  void sse_encode_convert_options(
+      ConvertOptions self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.outputFormat, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.quality, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.width, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.height, serializer);
+    sse_encode_opt_String(self.ffmpegPath, serializer);
+  }
+
+  @protected
+  void sse_encode_convert_result(ConvertResult self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_bool(self.success, serializer);
+    sse_encode_opt_String(self.outputPath, serializer);
+    sse_encode_opt_String(self.error, serializer);
+  }
+
+  @protected
+  void sse_encode_file_type(FileType self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
+  }
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_convert_result(
+      List<ConvertResult> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_convert_result(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+      Uint8List self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    serializer.buffer.putUint8List(self);
+  }
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_file_type(
+      FileType? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_file_type(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_i_32(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putUint8(self);
+  }
+
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+}

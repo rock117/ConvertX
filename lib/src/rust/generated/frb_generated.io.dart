@@ -10,140 +10,187 @@ import 'dart:ffi' as ffi;
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
 
+abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+  RustLibApiImplPlatform({
+    required super.handler,
+    required super.wire,
+    required super.generalizedFrbRustBinding,
+    required super.portManager,
+  });
 
+  @protected
+  String dco_decode_String(dynamic raw);
 
+  @protected
+  bool dco_decode_bool(dynamic raw);
 
-                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-                  RustLibApiImplPlatform({
-                    required super.handler,
-                    required super.wire,
-                    required super.generalizedFrbRustBinding,
-                    required super.portManager,
-                  });
+  @protected
+  ConvertOptions dco_decode_box_autoadd_convert_options(dynamic raw);
 
-                  
+  @protected
+  FileType dco_decode_box_autoadd_file_type(dynamic raw);
 
-                  @protected String dco_decode_String(dynamic raw);
+  @protected
+  int dco_decode_box_autoadd_i_32(dynamic raw);
 
-@protected bool dco_decode_bool(dynamic raw);
+  @protected
+  ConvertOptions dco_decode_convert_options(dynamic raw);
 
-@protected ConvertOptions dco_decode_box_autoadd_convert_options(dynamic raw);
+  @protected
+  ConvertResult dco_decode_convert_result(dynamic raw);
 
-@protected FileType dco_decode_box_autoadd_file_type(dynamic raw);
+  @protected
+  FileType dco_decode_file_type(dynamic raw);
 
-@protected int dco_decode_box_autoadd_i_32(dynamic raw);
+  @protected
+  int dco_decode_i_32(dynamic raw);
 
-@protected ConvertOptions dco_decode_convert_options(dynamic raw);
+  @protected
+  List<String> dco_decode_list_String(dynamic raw);
 
-@protected ConvertResult dco_decode_convert_result(dynamic raw);
+  @protected
+  List<ConvertResult> dco_decode_list_convert_result(dynamic raw);
 
-@protected FileType dco_decode_file_type(dynamic raw);
+  @protected
+  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
-@protected int dco_decode_i_32(dynamic raw);
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
 
-@protected List<String> dco_decode_list_String(dynamic raw);
+  @protected
+  FileType? dco_decode_opt_box_autoadd_file_type(dynamic raw);
 
-@protected List<ConvertResult> dco_decode_list_convert_result(dynamic raw);
+  @protected
+  int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
 
-@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+  @protected
+  int dco_decode_u_8(dynamic raw);
 
-@protected String? dco_decode_opt_String(dynamic raw);
+  @protected
+  void dco_decode_unit(dynamic raw);
 
-@protected FileType? dco_decode_opt_box_autoadd_file_type(dynamic raw);
+  @protected
+  String sse_decode_String(SseDeserializer deserializer);
 
-@protected int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
 
-@protected int dco_decode_u_8(dynamic raw);
+  @protected
+  ConvertOptions sse_decode_box_autoadd_convert_options(
+      SseDeserializer deserializer);
 
-@protected void dco_decode_unit(dynamic raw);
+  @protected
+  FileType sse_decode_box_autoadd_file_type(SseDeserializer deserializer);
 
-@protected String sse_decode_String(SseDeserializer deserializer);
+  @protected
+  int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
 
-@protected bool sse_decode_bool(SseDeserializer deserializer);
+  @protected
+  ConvertOptions sse_decode_convert_options(SseDeserializer deserializer);
 
-@protected ConvertOptions sse_decode_box_autoadd_convert_options(SseDeserializer deserializer);
+  @protected
+  ConvertResult sse_decode_convert_result(SseDeserializer deserializer);
 
-@protected FileType sse_decode_box_autoadd_file_type(SseDeserializer deserializer);
+  @protected
+  FileType sse_decode_file_type(SseDeserializer deserializer);
 
-@protected int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
 
-@protected ConvertOptions sse_decode_convert_options(SseDeserializer deserializer);
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
 
-@protected ConvertResult sse_decode_convert_result(SseDeserializer deserializer);
+  @protected
+  List<ConvertResult> sse_decode_list_convert_result(
+      SseDeserializer deserializer);
 
-@protected FileType sse_decode_file_type(SseDeserializer deserializer);
+  @protected
+  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
-@protected int sse_decode_i_32(SseDeserializer deserializer);
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
 
-@protected List<String> sse_decode_list_String(SseDeserializer deserializer);
+  @protected
+  FileType? sse_decode_opt_box_autoadd_file_type(SseDeserializer deserializer);
 
-@protected List<ConvertResult> sse_decode_list_convert_result(SseDeserializer deserializer);
+  @protected
+  int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
 
-@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+  @protected
+  int sse_decode_u_8(SseDeserializer deserializer);
 
-@protected String? sse_decode_opt_String(SseDeserializer deserializer);
+  @protected
+  void sse_decode_unit(SseDeserializer deserializer);
 
-@protected FileType? sse_decode_opt_box_autoadd_file_type(SseDeserializer deserializer);
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer);
 
-@protected int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer);
 
-@protected int sse_decode_u_8(SseDeserializer deserializer);
+  @protected
+  void sse_encode_box_autoadd_convert_options(
+      ConvertOptions self, SseSerializer serializer);
 
-@protected void sse_decode_unit(SseDeserializer deserializer);
+  @protected
+  void sse_encode_box_autoadd_file_type(
+      FileType self, SseSerializer serializer);
 
-@protected void sse_encode_String(String self, SseSerializer serializer);
+  @protected
+  void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
 
-@protected void sse_encode_bool(bool self, SseSerializer serializer);
+  @protected
+  void sse_encode_convert_options(
+      ConvertOptions self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_convert_options(ConvertOptions self, SseSerializer serializer);
+  @protected
+  void sse_encode_convert_result(ConvertResult self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_file_type(FileType self, SseSerializer serializer);
+  @protected
+  void sse_encode_file_type(FileType self, SseSerializer serializer);
 
-@protected void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
 
-@protected void sse_encode_convert_options(ConvertOptions self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
-@protected void sse_encode_convert_result(ConvertResult self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_convert_result(
+      List<ConvertResult> self, SseSerializer serializer);
 
-@protected void sse_encode_file_type(FileType self, SseSerializer serializer);
+  @protected
+  void sse_encode_list_prim_u_8_strict(
+      Uint8List self, SseSerializer serializer);
 
-@protected void sse_encode_i_32(int self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
 
-@protected void sse_encode_list_String(List<String> self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_box_autoadd_file_type(
+      FileType? self, SseSerializer serializer);
 
-@protected void sse_encode_list_convert_result(List<ConvertResult> self, SseSerializer serializer);
+  @protected
+  void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
 
-@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
+  @protected
+  void sse_encode_u_8(int self, SseSerializer serializer);
 
-@protected void sse_encode_opt_String(String? self, SseSerializer serializer);
-
-@protected void sse_encode_opt_box_autoadd_file_type(FileType? self, SseSerializer serializer);
-
-@protected void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
-
-@protected void sse_encode_u_8(int self, SseSerializer serializer);
-
-@protected void sse_encode_unit(void self, SseSerializer serializer);
-                }
-                
-
+  @protected
+  void sse_encode_unit(void self, SseSerializer serializer);
+}
 
 // Section: wire_class
 
+class RustLibWire implements BaseWire {
+  factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
+      RustLibWire(lib.ffiDynamicLibrary);
 
-        class RustLibWire implements BaseWire {
+  /// Holds the symbol lookup function.
+  final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
+      _lookup;
 
-            factory RustLibWire.fromExternalLibrary(ExternalLibrary lib) =>
-              RustLibWire(lib.ffiDynamicLibrary);
-        
-            /// Holds the symbol lookup function.
-            final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-                _lookup;
-  
-            /// The symbols are looked up in [dynamicLibrary].
-            RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-                : _lookup = dynamicLibrary.lookup;
-
-            
-        }
-        
+  /// The symbols are looked up in [dynamicLibrary].
+  RustLibWire(ffi.DynamicLibrary dynamicLibrary)
+      : _lookup = dynamicLibrary.lookup;
+}

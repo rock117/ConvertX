@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/conversion_provider.dart';
+import '../providers/ffmpeg_provider.dart';
 
 class ProgressList extends ConsumerStatefulWidget {
   const ProgressList({super.key});
@@ -75,8 +76,9 @@ class _ProgressListState extends ConsumerState<ProgressList> {
   @override
   Widget build(BuildContext context) {
     final tasks = ref.watch(conversionTasksProvider);
+    final isDownloadingFfmpeg = ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.downloading || ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.extracting;
 
-    if (tasks.isEmpty) {
+    if (tasks.isEmpty && !isDownloadingFfmpeg) {
       return const SizedBox.shrink();
     }
 
@@ -124,14 +126,65 @@ class _ProgressListState extends ConsumerState<ProgressList> {
             child: ListView.builder(
               shrinkWrap: true,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: tasks.length,
+              itemCount: tasks.length + (ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.downloading || ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.extracting ? 1 : 0),
               itemBuilder: (context, index) {
-                final task = tasks[index];
+                final isDownloadingFfmpeg = ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.downloading || ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.extracting;
+                if (isDownloadingFfmpeg && index == 0) {
+                  return _buildFfmpegDownloadItem(context);
+                }
+                
+                final taskIndex = isDownloadingFfmpeg ? index - 1 : index;
+                final task = tasks[taskIndex];
                 return _buildTaskItem(context, task);
               },
             ),
           ),
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFfmpegDownloadItem(BuildContext context) {
+    final state = ref.watch(ffmpegProvider);
+    final isExtracting = state.status == FfmpegDownloadStatus.extracting;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(
+            Icons.cloud_download,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Downloading FFmpeg...',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  isExtracting ? 'Extracting...' : 'Downloading: ${(state.progress * 100).toStringAsFixed(1)}%',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                LinearProgressIndicator(
+                  value: isExtracting ? null : state.progress,
+                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 30), // Placeholder for align with icon buttons
         ],
       ),
     );

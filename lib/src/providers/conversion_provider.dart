@@ -5,6 +5,7 @@ import 'package:open_file/open_file.dart';
 import 'dart:async';
 import 'dart:io';
 import '../rust/generated/api.dart' as rust_api;
+import 'ffmpeg_provider.dart';
 
 // State providers
 final fileListProvider = StateNotifierProvider<FileListNotifier, List<String>>((ref) {
@@ -189,6 +190,44 @@ class ConversionNotifier {
     final quality = ref.read(qualityProvider);
     final outputDir = await ref.read(outputDirectoryProvider.notifier).getDefaultOutputDirectory();
 
+    // Check if FFmpeg is required for any of the tasks (video -> audio)
+    bool requiresFfmpeg = false;
+    for (final file in files) {
+      final ext = file.split('.').last.toLowerCase();
+      final isVideo = ['mp4', 'avi', 'mkv', 'mov', 'webm', 'flv'].contains(ext);
+      final isAudioOutput = ['mp3', 'wav', 'aac', 'flac'].contains(outputFormat);
+      if (isVideo && isAudioOutput) {
+        requiresFfmpeg = true;
+        break;
+      }
+    }
+
+    String? customFfmpegPath;
+    if (requiresFfmpeg) {
+      // Prompt download if necessary
+      final success = await ref.read(ffmpegProvider.notifier).ensureFfmpeg();
+      if (!success) {
+        // Find existing task IDs or skip, let's just abort with error state handled by provider UI
+        final error = ref.read(ffmpegProvider).errorMessage ?? 'Failed to setup FFmpeg';
+        for (final file in files) {
+          final fileName = file.split(RegExp(r'[\\/]')).last;
+          final taskId = '${DateTime.now().microsecondsSinceEpoch}_${file.hashCode.abs()}';
+          ref.read(conversionTasksProvider.notifier).addTask(
+            ConversionTask(
+              id: taskId,
+              fileName: fileName,
+              inputPath: file,
+              startedAt: DateTime.now(),
+              status: ConversionStatus.failed,
+              error: error,
+            )
+          );
+        }
+        return;
+      }
+      customFfmpegPath = ref.read(ffmpegProvider).executablePath;
+    }
+
     for (final file in files) {
       final fileName = file.split(RegExp(r'[\\/]')).last;
       final taskId = '${DateTime.now().microsecondsSinceEpoch}_${file.hashCode.abs()}';
@@ -210,6 +249,7 @@ class ConversionNotifier {
           quality: quality,
           width: null,
           height: null,
+          ffmpegPath: customFfmpegPath,
         );
 
         final result = await rust_api

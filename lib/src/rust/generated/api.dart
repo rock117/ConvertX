@@ -6,98 +6,125 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-
-            // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ConvertProgress`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ConvertProgress`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`
 
-
-            /// 检测文件类型
-Future<FileType?>  detectFileType({required String filePath }) => RustLib.instance.api.crateApiDetectFileType(filePath: filePath);
+/// 检测文件类型
+Future<FileType?> detectFileType({required String filePath}) =>
+    RustLib.instance.api.crateApiDetectFileType(filePath: filePath);
 
 /// 获取支持的输出格式
-Future<List<String>>  getSupportedOutputFormats({required FileType fileType }) => RustLib.instance.api.crateApiGetSupportedOutputFormats(fileType: fileType);
+Future<List<String>> getSupportedOutputFormats({required FileType fileType}) =>
+    RustLib.instance.api.crateApiGetSupportedOutputFormats(fileType: fileType);
 
 /// 获取某个具体文件（根据扩展名/类型）实际支持的输出格式
 ///
 /// 注意：这会比 `get_supported_output_formats(FileType)` 更严格，避免 UI 展示无效选项。
-Future<List<String>>  getSupportedOutputFormatsForFile({required String filePath }) => RustLib.instance.api.crateApiGetSupportedOutputFormatsForFile(filePath: filePath);
+Future<List<String>> getSupportedOutputFormatsForFile(
+        {required String filePath}) =>
+    RustLib.instance.api
+        .crateApiGetSupportedOutputFormatsForFile(filePath: filePath);
 
 /// 转换单个文件
-Future<ConvertResult>  convertFile({required String inputPath , required String outputDir , required ConvertOptions options }) => RustLib.instance.api.crateApiConvertFile(inputPath: inputPath, outputDir: outputDir, options: options);
+Future<ConvertResult> convertFile(
+        {required String inputPath,
+        required String outputDir,
+        required ConvertOptions options}) =>
+    RustLib.instance.api.crateApiConvertFile(
+        inputPath: inputPath, outputDir: outputDir, options: options);
 
 /// 批量转换文件
-Future<List<ConvertResult>>  convertFiles({required List<String> inputPaths , required String outputDir , required ConvertOptions options }) => RustLib.instance.api.crateApiConvertFiles(inputPaths: inputPaths, outputDir: outputDir, options: options);
+Future<List<ConvertResult>> convertFiles(
+        {required List<String> inputPaths,
+        required String outputDir,
+        required ConvertOptions options}) =>
+    RustLib.instance.api.crateApiConvertFiles(
+        inputPaths: inputPaths, outputDir: outputDir, options: options);
 
 /// 打开文件夹
-Future<bool>  openFolder({required String folderPath }) => RustLib.instance.api.crateApiOpenFolder(folderPath: folderPath);
+Future<bool> openFolder({required String folderPath}) =>
+    RustLib.instance.api.crateApiOpenFolder(folderPath: folderPath);
 
-            /// 转换选项
-class ConvertOptions  {
-                /// 输出格式 (如 "png", "jpg", "pdf", "mp4")
-final String outputFormat;
-/// 质量 (0-100，用于图片/视频压缩)
-final int? quality;
-/// 宽度 (用于图片/视频调整尺寸)
-final int? width;
-/// 高度 (用于图片/视频调整尺寸)
-final int? height;
+/// 转换选项
+class ConvertOptions {
+  /// 输出格式 (如 "png", "jpg", "pdf", "mp4")
+  final String outputFormat;
 
-                const ConvertOptions({required this.outputFormat ,this.quality ,this.width ,this.height ,});
+  /// 质量 (0-100，用于图片/视频压缩)
+  final int? quality;
 
-                
-                
+  /// 宽度 (用于图片/视频调整尺寸)
+  final int? width;
 
-                
-        @override
-        int get hashCode => outputFormat.hashCode^quality.hashCode^width.hashCode^height.hashCode;
-        
+  /// 高度 (用于图片/视频调整尺寸)
+  final int? height;
 
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is ConvertOptions &&
-                runtimeType == other.runtimeType
-                && outputFormat == other.outputFormat&& quality == other.quality&& width == other.width&& height == other.height;
-        
-            }
+  /// FFmpeg 执行文件路径（如果由 Dart 端下载提供）
+  final String? ffmpegPath;
+
+  const ConvertOptions({
+    required this.outputFormat,
+    this.quality,
+    this.width,
+    this.height,
+    this.ffmpegPath,
+  });
+
+  @override
+  int get hashCode =>
+      outputFormat.hashCode ^
+      quality.hashCode ^
+      width.hashCode ^
+      height.hashCode ^
+      ffmpegPath.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ConvertOptions &&
+          runtimeType == other.runtimeType &&
+          outputFormat == other.outputFormat &&
+          quality == other.quality &&
+          width == other.width &&
+          height == other.height &&
+          ffmpegPath == other.ffmpegPath;
+}
 
 /// 转换结果
-class ConvertResult  {
-                /// 是否成功
-final bool success;
-/// 输出文件路径
-final String? outputPath;
-/// 错误信息
-final String? error;
+class ConvertResult {
+  /// 是否成功
+  final bool success;
 
-                const ConvertResult({required this.success ,this.outputPath ,this.error ,});
+  /// 输出文件路径
+  final String? outputPath;
 
-                
-                
+  /// 错误信息
+  final String? error;
 
-                
-        @override
-        int get hashCode => success.hashCode^outputPath.hashCode^error.hashCode;
-        
+  const ConvertResult({
+    required this.success,
+    this.outputPath,
+    this.error,
+  });
 
-                
-        @override
-        bool operator ==(Object other) =>
-            identical(this, other) ||
-            other is ConvertResult &&
-                runtimeType == other.runtimeType
-                && success == other.success&& outputPath == other.outputPath&& error == other.error;
-        
-            }
+  @override
+  int get hashCode => success.hashCode ^ outputPath.hashCode ^ error.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ConvertResult &&
+          runtimeType == other.runtimeType &&
+          success == other.success &&
+          outputPath == other.outputPath &&
+          error == other.error;
+}
 
 /// 文件类型枚举
 enum FileType {
-                    image,
-document,
-audio,
-video,
-                    ;
-                    
-                }
-            
+  image,
+  document,
+  audio,
+  video,
+  ;
+}

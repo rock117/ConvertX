@@ -19,6 +19,8 @@ dependencies:
   open_file: ^3.3.2
   uuid: ^4.2.1
   ffi: ^2.1.0
+  dio: ^5.9.1
+  archive: ^4.0.9
 
 dev_dependencies:
   flutter_test:

@@ -22,6 +22,8 @@ pub struct ConvertOptions {
     pub width: Option<i32>,
     /// 高度 (用于图片/视频调整尺寸)
     pub height: Option<i32>,
+    /// FFmpeg 执行文件路径（如果由 Dart 端下载提供）
+    pub ffmpeg_path: Option<String>,
 }
 
 /// 转换结果
@@ -143,9 +145,16 @@ pub fn get_supported_output_formats_for_file(file_path: String) -> Vec<String> {
         // PDF input (conversion not implemented)
         "pdf" => vec![],
 
-        // Audio/Video: not implemented yet
+        // Audio: not implemented yet
         "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" => vec![],
-        "mp4" | "avi" | "mkv" | "mov" | "webm" | "flv" => vec![],
+        
+        // Video -> Audio (via FFmpeg)
+        "mp4" | "avi" | "mkv" | "mov" | "webm" | "flv" => vec![
+            "mp3".to_string(),
+            "wav".to_string(),
+            "aac".to_string(),
+            "flac".to_string(),
+        ],
 
         _ => vec![],
     }
