@@ -1,0 +1,153 @@
+use flutter_rust_bridge::frb;
+
+/// 文件类型枚举
+#[frb]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum FileType {
+    Image,
+    Document,
+    Audio,
+    Video,
+}
+
+/// 转换选项
+#[frb]
+#[derive(Debug, Clone)]
+pub struct ConvertOptions {
+    /// 输出格式 (如 "png", "jpg", "pdf", "mp4")
+    pub output_format: String,
+    /// 质量 (0-100，用于图片/视频压缩)
+    pub quality: Option<i32>,
+    /// 宽度 (用于图片/视频调整尺寸)
+    pub width: Option<i32>,
+    /// 高度 (用于图片/视频调整尺寸)
+    pub height: Option<i32>,
+}
+
+/// 转换结果
+#[frb]
+#[derive(Debug, Clone)]
+pub struct ConvertResult {
+    /// 是否成功
+    pub success: bool,
+    /// 输出文件路径
+    pub output_path: Option<String>,
+    /// 错误信息
+    pub error: Option<String>,
+}
+
+/// 转换进度
+#[frb]
+#[derive(Debug, Clone)]
+pub struct ConvertProgress {
+    /// 任务ID
+    pub task_id: String,
+    /// 进度百分比 (0-100)
+    pub progress: i32,
+    /// 当前状态
+    pub status: String,
+}
+
+/// 检测文件类型
+#[frb]
+pub fn detect_file_type(file_path: String) -> Option<FileType> {
+    let ext = std::path::Path::new(&file_path)
+        .extension()?
+        .to_str()?
+        .to_lowercase();
+    
+    match ext.as_str() {
+        "png" | "jpg" | "jpeg" | "webp" | "bmp" | "ico" | "svg" | "gif" => Some(FileType::Image),
+        "pdf" | "md" | "markdown" | "html" | "htm" | "txt" | "doc" | "docx" => Some(FileType::Document),
+        "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" => Some(FileType::Audio),
+        "mp4" | "avi" | "mkv" | "mov" | "webm" | "flv" => Some(FileType::Video),
+        _ => None,
+    }
+}
+
+/// 获取支持的输出格式
+#[frb]
+pub fn get_supported_output_formats(file_type: FileType) -> Vec<String> {
+    match file_type {
+        FileType::Image => vec![
+            "png".to_string(),
+            "jpg".to_string(),
+            "jpeg".to_string(),
+            "webp".to_string(),
+            "bmp".to_string(),
+            "ico".to_string(),
+            "gif".to_string(),
+        ],
+        FileType::Document => vec![
+            "pdf".to_string(),
+            "html".to_string(),
+            "txt".to_string(),
+        ],
+        FileType::Audio => vec![
+            "mp3".to_string(),
+            "wav".to_string(),
+            "flac".to_string(),
+            "aac".to_string(),
+            "ogg".to_string(),
+        ],
+        FileType::Video => vec![
+            "mp4".to_string(),
+            "avi".to_string(),
+            "mkv".to_string(),
+            "webm".to_string(),
+        ],
+    }
+}
+
+/// 转换单个文件
+#[frb]
+pub fn convert_file(
+    input_path: String,
+    output_dir: String,
+    options: ConvertOptions,
+) -> ConvertResult {
+    crate::converters::convert_single(&input_path, &output_dir, &options)
+}
+
+/// 批量转换文件
+#[frb]
+pub fn convert_files(
+    input_paths: Vec<String>,
+    output_dir: String,
+    options: ConvertOptions,
+) -> Vec<ConvertResult> {
+    input_paths
+        .iter()
+        .map(|path| crate::converters::convert_single(path, &output_dir, &options))
+        .collect()
+}
+
+/// 打开文件夹
+#[frb]
+pub fn open_folder(folder_path: String) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&folder_path)
+            .spawn()
+            .is_ok()
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&folder_path)
+            .spawn()
+            .is_ok()
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&folder_path)
+            .spawn()
+            .is_ok()
+    }
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    {
+        false
+    }
+}

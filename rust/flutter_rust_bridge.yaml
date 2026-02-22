@@ -1,0 +1,11 @@
+base_dir: .
+rust_root: .
+rust_input: crate::api
+dart_output: ../lib/src/rust/generated
+c_output: target/frb_codegen
+dart_root: ..
+dart_fix: false
+dart_format: false
+rust_format: false
+llvm_path:
+  - "C:\\Program Files\\LLVM\\bin"
