@@ -139,7 +139,7 @@ class ConversionTasksNotifier extends StateNotifier<List<ConversionTask>> {
   ConversionTasksNotifier() : super([]);
 
   void addTask(ConversionTask task) {
-    state = [...state, task];
+    state = [task, ...state];
   }
 
   void updateTask(String id, {

@@ -58,7 +58,9 @@ pub fn detect_file_type(file_path: String) -> Option<FileType> {
     
     match ext.as_str() {
         "png" | "jpg" | "jpeg" | "webp" | "bmp" | "ico" | "svg" | "gif" => Some(FileType::Image),
-        "pdf" | "md" | "markdown" | "html" | "htm" | "txt" | "doc" | "docx" | "epub" => Some(FileType::Document),
+        "pdf" | "md" | "markdown" | "html" | "htm" | "txt" | "doc" | "docx" | "ppt" | "pptx" | "epub" => {
+            Some(FileType::Document)
+        }
         "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" => Some(FileType::Audio),
         "mp4" | "avi" | "mkv" | "mov" | "webm" | "flv" => Some(FileType::Video),
         _ => None,
@@ -117,16 +119,28 @@ pub fn get_supported_output_formats_for_file(file_path: String) -> Vec<String> {
             get_supported_output_formats(FileType::Image)
         }
 
+        // Markdown -> (html/txt/docx/pptx/pdf)
+        "md" | "markdown" => vec![
+            "html".to_string(),
+            "txt".to_string(),
+            "docx".to_string(),
+            "pptx".to_string(),
+            "pdf".to_string(),
+        ],
+
         // Documents: plain-text-ish -> html/txt
-        "md" | "markdown" | "html" | "htm" | "txt" => vec![
+        "html" | "htm" | "txt" => vec![
             "html".to_string(),
             "txt".to_string(),
         ],
 
+        // Office -> Markdown (via pandoc)
+        "docx" | "pptx" => vec!["md".to_string()],
+
         // Documents: epub -> pdf (requires external tools)
         "epub" => vec!["pdf".to_string()],
 
-        // PDF input (no conversion implemented yet)
+        // PDF input (conversion not implemented)
         "pdf" => vec![],
 
         // Audio/Video: not implemented yet

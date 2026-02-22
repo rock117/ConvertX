@@ -47,6 +47,9 @@ Current focus areas:
 |---|---|---|---|
 | Image | `png/jpg/jpeg/webp/bmp/ico/gif` | `png/jpg/jpeg/webp/bmp/ico/gif` | Basic image conversion |
 | Text Document | `txt/md/html/htm` | `txt/html` | Plain text and markup conversion |
+| Office (via pandoc) | `md` | `docx/pptx` | Markdown to Word/PowerPoint |
+| Office (via pandoc) | `docx/pptx` | `md` | Word/PowerPoint to Markdown |
+| PDF (via Chromium) | `md` | `pdf` | Markdown to PDF |
 | Ebook | `epub` | `pdf` | Requires `pandoc` or `ebook-convert` |
 
 ### Planned
@@ -130,6 +133,46 @@ winget install Pandoc
 winget install calibre.calibre
 ```
 
+## Markdown <-> Office Dependencies
+
+`md <-> docx` and `md <-> pptx` are implemented via **pandoc**.
+
+### Verify Installation
+
+```powershell
+pandoc --version
+```
+
+### Windows Installation
+
+```powershell
+winget install Pandoc
+```
+
+## Markdown -> PDF Dependencies
+
+`md -> pdf` uses **Chromium** (via headless_chrome) for high-quality output.
+
+### Recommended Setup (Chromium)
+
+**Requirements:**
+- **Chrome** or **Chromium** browser installed on your system
+
+**Verify Installation:**
+
+```powershell
+# Check if Chrome is installed (Windows)
+Get-Command chrome -ErrorAction SilentlyContinue
+# or check for Chromium
+Get-Command chromium -ErrorAction SilentlyContinue
+```
+
+**Why Chromium?**
+- Better HTML/CSS rendering for professional PDF output
+- Superior styling and layout compared to LaTeX-based output
+- Better support for complex Markdown with embedded HTML
+- Task list marks are colorized in PDF: green for done, red for todo
+
 ## Project Structure
 
 ```text
@@ -150,7 +193,6 @@ ConvertX/
 ```
 
 ## Roadmap
-
 - [x] Base project structure
 - [x] Image and document conversion
 - [x] EPUB -> PDF via external tools
