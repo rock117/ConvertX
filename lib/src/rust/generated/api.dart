@@ -17,6 +17,11 @@ Future<FileType?>  detectFileType({required String filePath }) => RustLib.instan
 /// 获取支持的输出格式
 Future<List<String>>  getSupportedOutputFormats({required FileType fileType }) => RustLib.instance.api.crateApiGetSupportedOutputFormats(fileType: fileType);
 
+/// 获取某个具体文件（根据扩展名/类型）实际支持的输出格式
+///
+/// 注意：这会比 `get_supported_output_formats(FileType)` 更严格，避免 UI 展示无效选项。
+Future<List<String>>  getSupportedOutputFormatsForFile({required String filePath }) => RustLib.instance.api.crateApiGetSupportedOutputFormatsForFile(filePath: filePath);
+
 /// 转换单个文件
 Future<ConvertResult>  convertFile({required String inputPath , required String outputDir , required ConvertOptions options }) => RustLib.instance.api.crateApiConvertFile(inputPath: inputPath, outputDir: outputDir, options: options);
 

@@ -67,7 +67,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
                   String get codegenVersion => '2.11.1';
 
                   @override
-                  int get rustContentHash => -1522451732;
+                  int get rustContentHash => 545976053;
 
                   static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
                     stem: 'convertx_core',
@@ -85,6 +85,8 @@ Future<List<ConvertResult>> crateApiConvertFiles({required List<String> inputPat
 Future<FileType?> crateApiDetectFileType({required String filePath });
 
 Future<List<String>> crateApiGetSupportedOutputFormats({required FileType fileType });
+
+Future<List<String>> crateApiGetSupportedOutputFormatsForFile({required String filePath });
 
 Future<bool> crateApiOpenFolder({required String folderPath });
 
@@ -204,11 +206,36 @@ sse_encode_box_autoadd_convert_options(options, serializer);
         );
         
 
+@override Future<List<String>> crateApiGetSupportedOutputFormatsForFile({required String filePath })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(filePath, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_list_String,
+          decodeErrorData: null,
+        )
+        ,
+            constMeta: kCrateApiGetSupportedOutputFormatsForFileConstMeta,
+            argValues: [filePath],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiGetSupportedOutputFormatsForFileConstMeta => const TaskConstMeta(
+            debugName: "get_supported_output_formats_for_file",
+            argNames: ["filePath"],
+        );
+        
+
 @override Future<bool> crateApiOpenFolder({required String folderPath })  { return handler.executeNormal(NormalTask(
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(folderPath, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6, port: port_);
             
             },
             codec: 

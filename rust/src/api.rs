@@ -58,7 +58,7 @@ pub fn detect_file_type(file_path: String) -> Option<FileType> {
     
     match ext.as_str() {
         "png" | "jpg" | "jpeg" | "webp" | "bmp" | "ico" | "svg" | "gif" => Some(FileType::Image),
-        "pdf" | "md" | "markdown" | "html" | "htm" | "txt" | "doc" | "docx" => Some(FileType::Document),
+        "pdf" | "md" | "markdown" | "html" | "htm" | "txt" | "doc" | "docx" | "epub" => Some(FileType::Document),
         "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" => Some(FileType::Audio),
         "mp4" | "avi" | "mkv" | "mov" | "webm" | "flv" => Some(FileType::Video),
         _ => None,
@@ -79,9 +79,10 @@ pub fn get_supported_output_formats(file_type: FileType) -> Vec<String> {
             "gif".to_string(),
         ],
         FileType::Document => vec![
-            "pdf".to_string(),
             "html".to_string(),
             "txt".to_string(),
+            // PDF is only supported for certain inputs (e.g., EPUB) via external tools.
+            "pdf".to_string(),
         ],
         FileType::Audio => vec![
             "mp3".to_string(),
@@ -96,6 +97,43 @@ pub fn get_supported_output_formats(file_type: FileType) -> Vec<String> {
             "mkv".to_string(),
             "webm".to_string(),
         ],
+    }
+}
+
+/// 获取某个具体文件（根据扩展名/类型）实际支持的输出格式
+///
+/// 注意：这会比 `get_supported_output_formats(FileType)` 更严格，避免 UI 展示无效选项。
+#[frb]
+pub fn get_supported_output_formats_for_file(file_path: String) -> Vec<String> {
+    let ext = std::path::Path::new(&file_path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
+
+    match ext.as_str() {
+        // Images
+        "png" | "jpg" | "jpeg" | "webp" | "bmp" | "ico" | "svg" | "gif" => {
+            get_supported_output_formats(FileType::Image)
+        }
+
+        // Documents: plain-text-ish -> html/txt
+        "md" | "markdown" | "html" | "htm" | "txt" => vec![
+            "html".to_string(),
+            "txt".to_string(),
+        ],
+
+        // Documents: epub -> pdf (requires external tools)
+        "epub" => vec!["pdf".to_string()],
+
+        // PDF input (no conversion implemented yet)
+        "pdf" => vec![],
+
+        // Audio/Video: not implemented yet
+        "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" => vec![],
+        "mp4" | "avi" | "mkv" | "mov" | "webm" | "flv" => vec![],
+
+        _ => vec![],
     }
 }
 

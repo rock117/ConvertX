@@ -4,29 +4,37 @@ import 'src/screens/home_screen.dart';
 import 'dart:ffi';
 import 'dart:io';
 import 'src/rust/generated/frb_generated.dart';
+import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Optionally preload the dynamic library so the default loader can find it.
   final dylibPath = _resolveRustDylibPath();
-  DynamicLibrary.open(dylibPath);
 
-  // Use flutter_rust_bridge generated default loader config.
-  await RustLib.init();
+  // Explicitly load the correct DLL to avoid FRB content-hash mismatch.
+  // (The default loader may pick up an older copy from another directory.)
+  await RustLib.init(
+    externalLibrary: ExternalLibrary.open(dylibPath),
+  );
 
   runApp(const ProviderScope(child: ConvertXApp()));
 }
 
 String _resolveRustDylibPath() {
   if (Platform.isWindows) {
+    final cwd = Directory.current.path;
     final candidates = <String>[
+      '$cwd\\rust\\target\\release\\convertx_core.dll',
+      '$cwd\\..\\rust\\target\\release\\convertx_core.dll',
+      'rust\\target\\release\\convertx_core.dll',
+      '..\\rust\\target\\release\\convertx_core.dll',
       'convertx_core.dll',
-      'rust/target/release/convertx_core.dll',
-      '../rust/target/release/convertx_core.dll',
+      'convertx_core.dll'.replaceAll('/', '\\'),
     ];
     for (final p in candidates) {
-      if (File(p).existsSync()) return p;
+      final f = File(p);
+      if (f.existsSync()) return f.absolute.path;
     }
     return 'convertx_core.dll';
   }

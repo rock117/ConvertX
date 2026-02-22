@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
                     default_rust_auto_opaque = RustAutoOpaqueMoi,
                 );
                 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-                pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1522451732;
+                pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 545976053;
             
 
 // Section: executor
@@ -84,6 +84,15 @@ let api_options = <crate::api::ConvertOptions>::sse_decode(&mut deserializer);de
             let api_file_type = <crate::api::FileType>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
                     transform_result_sse::<_, ()>((move ||  {
                          let output_ok = Result::<_,()>::Ok(crate::api::get_supported_output_formats(api_file_type))?;   Ok(output_ok)
+                    })())
+                } })
+            }fn wire__crate__api__get_supported_output_formats_for_file_impl(port_: flutter_rust_bridge::for_generated::MessagePort,ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,rust_vec_len_: i32,data_len_: i32)  {
+                FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec,_,_>(flutter_rust_bridge::for_generated::TaskInfo{ debug_name: "get_supported_output_formats_for_file", port: Some(port_), mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal }, move || { 
+            let message = unsafe { flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_) };
+            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_file_path = <String>::sse_decode(&mut deserializer);deserializer.end(); move |context|  {
+                    transform_result_sse::<_, ()>((move ||  {
+                         let output_ok = Result::<_,()>::Ok(crate::api::get_supported_output_formats_for_file(api_file_path))?;   Ok(output_ok)
                     })())
                 } })
             }fn wire__crate__api__open_folder_impl(port_: flutter_rust_bridge::for_generated::MessagePort,ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,rust_vec_len_: i32,data_len_: i32)  {
@@ -218,7 +227,8 @@ return crate::api::ConvertResult{success: var_success, output_path: var_outputPa
 2 => wire__crate__api__convert_files_impl(port, ptr, rust_vec_len, data_len),
 3 => wire__crate__api__detect_file_type_impl(port, ptr, rust_vec_len, data_len),
 4 => wire__crate__api__get_supported_output_formats_impl(port, ptr, rust_vec_len, data_len),
-5 => wire__crate__api__open_folder_impl(port, ptr, rust_vec_len, data_len),
+5 => wire__crate__api__get_supported_output_formats_for_file_impl(port, ptr, rust_vec_len, data_len),
+6 => wire__crate__api__open_folder_impl(port, ptr, rust_vec_len, data_len),
                         _ => unreachable!(),
                     }
                 }

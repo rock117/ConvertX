@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'dart:async';
 import 'dart:io';
 import '../rust/generated/api.dart' as rust_api;
 
@@ -22,13 +23,32 @@ final outputDirectoryProvider = StateNotifierProvider<OutputDirectoryNotifier, S
   return OutputDirectoryNotifier();
 });
 
-final supportedFormatsProvider = Provider<List<String>>((ref) {
-  // This would normally come from Rust backend
-  return ['png', 'jpg', 'webp', 'bmp', 'gif', 'pdf', 'html', 'txt', 'mp3', 'mp4'];
+final supportedFormatsProvider = FutureProvider<List<String>>((ref) async {
+  final files = ref.watch(fileListProvider);
+  if (files.isEmpty) {
+    return ['png', 'jpg', 'webp', 'bmp', 'gif'];
+  }
+
+  try {
+    final formats = await rust_api.getSupportedOutputFormatsForFile(filePath: files.first);
+    if (formats.isEmpty) {
+      // If file type is not supported or there is no valid output, return empty list
+      // so the UI can disable selection.
+      return <String>[];
+    }
+    return formats;
+  } catch (_) {
+    return <String>[];
+  }
 });
 
 final conversionTasksProvider = StateNotifierProvider<ConversionTasksNotifier, List<ConversionTask>>((ref) {
   return ConversionTasksNotifier();
+});
+
+final isConvertingProvider = Provider<bool>((ref) {
+  final tasks = ref.watch(conversionTasksProvider);
+  return tasks.any((t) => t.status == ConversionStatus.converting);
 });
 
 final conversionProvider = Provider<ConversionNotifier>((ref) {
@@ -47,6 +67,8 @@ class ConversionTask {
   final String id;
   final String fileName;
   final String inputPath;
+  final DateTime startedAt;
+  DateTime? endedAt;
   ConversionStatus status;
   int progress;
   String? outputPath;
@@ -56,6 +78,8 @@ class ConversionTask {
     required this.id,
     required this.fileName,
     required this.inputPath,
+    required this.startedAt,
+    this.endedAt,
     this.status = ConversionStatus.pending,
     this.progress = 0,
     this.outputPath,
@@ -70,13 +94,7 @@ class FileListNotifier extends StateNotifier<List<String>> {
   Future<void> pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
-      type: FileType.custom,
-      allowedExtensions: [
-        'png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'ico', 'svg',
-        'pdf', 'md', 'html', 'htm', 'txt',
-        'mp3', 'wav', 'flac', 'aac', 'ogg',
-        'mp4', 'avi', 'mkv', 'mov', 'webm',
-      ],
+      type: FileType.any,
     );
     
     if (result != null && result.files.isNotEmpty) {
@@ -129,6 +147,9 @@ class ConversionTasksNotifier extends StateNotifier<List<ConversionTask>> {
     int? progress,
     String? outputPath,
     String? error,
+    DateTime? endedAt,
+    bool clearOutputPath = false,
+    bool clearError = false,
   }) {
     state = state.map((task) {
       if (task.id == id) {
@@ -136,10 +157,12 @@ class ConversionTasksNotifier extends StateNotifier<List<ConversionTask>> {
           id: task.id,
           fileName: task.fileName,
           inputPath: task.inputPath,
+          startedAt: task.startedAt,
+          endedAt: endedAt ?? task.endedAt,
           status: status ?? task.status,
           progress: progress ?? task.progress,
-          outputPath: outputPath ?? task.outputPath,
-          error: error ?? task.error,
+          outputPath: clearOutputPath ? null : (outputPath ?? task.outputPath),
+          error: clearError ? null : (error ?? task.error),
         );
       }
       return task;
@@ -157,6 +180,10 @@ class ConversionNotifier {
   ConversionNotifier(this.ref);
 
   Future<void> startConversion() async {
+    final isConverting = ref.read(isConvertingProvider);
+    if (isConverting) {
+      return;
+    }
     final files = ref.read(fileListProvider);
     final outputFormat = ref.read(outputFormatProvider);
     final quality = ref.read(qualityProvider);
@@ -164,13 +191,15 @@ class ConversionNotifier {
 
     for (final file in files) {
       final fileName = file.split(RegExp(r'[\\/]')).last;
-      final taskId = DateTime.now().millisecondsSinceEpoch.toString();
+      final taskId = '${DateTime.now().microsecondsSinceEpoch}_${file.hashCode.abs()}';
       
       final task = ConversionTask(
         id: taskId,
         fileName: fileName,
         inputPath: file,
+        startedAt: DateTime.now(),
         status: ConversionStatus.converting,
+        progress: 1,
       );
       
       ref.read(conversionTasksProvider.notifier).addTask(task);
@@ -183,11 +212,13 @@ class ConversionNotifier {
           height: null,
         );
 
-        final result = await rust_api.convertFile(
-          inputPath: file,
-          outputDir: outputDir,
-          options: options,
-        );
+        final result = await rust_api
+            .convertFile(
+              inputPath: file,
+              outputDir: outputDir,
+              options: options,
+            )
+            .timeout(const Duration(minutes: 15));
 
         if (result.success && result.outputPath != null) {
           ref.read(conversionTasksProvider.notifier).updateTask(
@@ -195,22 +226,51 @@ class ConversionNotifier {
             status: ConversionStatus.completed,
             progress: 100,
             outputPath: result.outputPath,
+            endedAt: DateTime.now(),
+            clearError: true,
           );
         } else {
           ref.read(conversionTasksProvider.notifier).updateTask(
             taskId,
             status: ConversionStatus.failed,
             progress: 0,
+            endedAt: DateTime.now(),
+            clearOutputPath: true,
             error: result.error ?? 'Unknown error',
           );
         }
+      } on TimeoutException {
+        ref.read(conversionTasksProvider.notifier).updateTask(
+          taskId,
+          status: ConversionStatus.failed,
+          progress: 0,
+          endedAt: DateTime.now(),
+          clearOutputPath: true,
+          error: '转换超时（15分钟）。外部工具可能卡住，请重试或改用另一个工具。',
+        );
       } catch (e) {
         ref.read(conversionTasksProvider.notifier).updateTask(
           taskId,
           status: ConversionStatus.failed,
           progress: 0,
+          endedAt: DateTime.now(),
+          clearOutputPath: true,
           error: e.toString(),
         );
+      } finally {
+        final stillConverting = ref
+            .read(conversionTasksProvider)
+            .any((t) => t.id == taskId && t.status == ConversionStatus.converting);
+        if (stillConverting) {
+          ref.read(conversionTasksProvider.notifier).updateTask(
+            taskId,
+            status: ConversionStatus.failed,
+            progress: 0,
+            endedAt: DateTime.now(),
+            clearOutputPath: true,
+            error: '转换状态异常：任务已结束但未收到完成信号。',
+          );
+        }
       }
     }
 
