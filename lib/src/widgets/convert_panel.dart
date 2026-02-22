@@ -8,6 +8,7 @@ class ConvertPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final files = ref.watch(fileListProvider);
+    final isConverting = ref.watch(isConvertingProvider);
     final outputFormat = ref.watch(outputFormatProvider);
     final quality = ref.watch(qualityProvider);
     final showAdvanced = ref.watch(showAdvancedOptionsProvider);
@@ -18,7 +19,7 @@ class ConvertPanel extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -93,13 +94,19 @@ class ConvertPanel extends ConsumerWidget {
 
                 // Convert button
                 FilledButton.icon(
-                  onPressed: files.isEmpty
+                  onPressed: (files.isEmpty || isConverting)
                       ? null
                       : () {
                           ref.read(conversionProvider).startConversion();
                         },
-                  icon: const Icon(Icons.transform),
-                  label: const Text('Convert'),
+                  icon: isConverting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.transform),
+                  label: Text(isConverting ? 'Converting...' : 'Convert'),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -113,7 +120,7 @@ class ConvertPanel extends ConsumerWidget {
   }
 
   Widget _buildFormatSelector(BuildContext context, WidgetRef ref, String format) {
-    final supportedFormats = ref.watch(supportedFormatsProvider);
+    final supportedFormatsAsync = ref.watch(supportedFormatsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,27 +132,53 @@ class ConvertPanel extends ConsumerWidget {
               ),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: format,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          items: supportedFormats.isEmpty
-              ? [const DropdownMenuItem(value: 'png', child: Text('PNG'))]
-              : supportedFormats
-                  .map((f) => DropdownMenuItem(
-                        value: f,
-                        child: Text(f.toUpperCase()),
-                      ))
-                  .toList(),
-          onChanged: (value) {
-            if (value != null) {
-              ref.read(outputFormatProvider.notifier).state = value;
+        supportedFormatsAsync.when(
+          data: (supportedFormats) {
+            final items = supportedFormats
+                .map((f) => DropdownMenuItem(
+                      value: f,
+                      child: Text(f.toUpperCase()),
+                    ))
+                .toList();
+
+            final hasItems = items.isNotEmpty;
+            final safeValue = hasItems
+                ? (supportedFormats.contains(format) ? format : supportedFormats.first)
+                : null;
+
+            // Ensure selected value is always valid.
+            if (hasItems && safeValue != format) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref.read(outputFormatProvider.notifier).state = safeValue!;
+              });
             }
+
+            return DropdownButtonFormField<String>(
+              initialValue: safeValue,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                helperText: hasItems ? null : '该文件类型暂无可用输出格式',
+              ),
+              items: hasItems ? items : const <DropdownMenuItem<String>>[],
+              onChanged: hasItems
+                  ? (value) {
+                      if (value != null) {
+                        ref.read(outputFormatProvider.notifier).state = value;
+                      }
+                    }
+                  : null,
+            );
           },
+          loading: () => const LinearProgressIndicator(minHeight: 2),
+          error: (_, __) => Text(
+            '无法获取支持的输出格式',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+          ),
         ),
       ],
     );

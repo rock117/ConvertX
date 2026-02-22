@@ -1,77 +1,174 @@
 # ConvertX
 
-A powerful desktop file converter built with Flutter and Rust.
+> A desktop file converter built with **Flutter + Rust**.
 
-## 功能特性
+[![status](https://img.shields.io/badge/status-active%20development-orange)](./README.md)
+[![platform](https://img.shields.io/badge/platform-Windows-blue)](./README.md)
+[![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
-- **图片转换**: PNG, JPG, WebP, BMP, ICO, GIF
-- **文档转换**: PDF, Markdown, HTML, TXT
-- **音频转换**: MP3, WAV, FLAC, AAC, OGG
-- **视频转换**: MP4, AVI, MKV, WebM
+> [!WARNING]
+> **Work in Progress**
+>
+> This project is under active development. Features and APIs may change.
+> Not recommended for production use yet. Feedback and issues are welcome.
 
-## 技术栈
+## Table of Contents
 
-- **前端**: Flutter (Dart) - 跨平台 UI
-- **后端**: Rust - 高性能文件处理
-- **桥接**: flutter_rust_bridge - 类型安全 FFI
+- [Overview](#overview)
+- [Features & Supported Formats](#features--supported-formats)
+- [Tech Stack](#tech-stack)
+- [Quick Start](#quick-start)
+- [EPUB -> PDF Dependencies](#epub---pdf-dependencies)
+- [Project Structure](#project-structure)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
-## 快速开始
+## Overview
 
-### 前置条件
+ConvertX is a desktop file conversion tool:
 
-1. **Flutter SDK**: https://docs.flutter.dev/get-started/install/windows
-   ```powershell
-   # 下载后解压，添加到 PATH 环境变量
-   flutter doctor
-   ```
-2. **Rust**: 已安装 ✓ (1.93.0)
-3. **Visual Studio**: 安装 C++ 桌面开发工作负载
+- A modern desktop UI built with Flutter
+- High-performance conversion engine built with Rust
+- Type-safe FFI integration via `flutter_rust_bridge`
 
-### 初始化步骤
+Current focus areas:
+
+- Image conversion
+- Text/document conversion
+- EPUB -> PDF (via external tools)
+- Clear conversion progress and error feedback
+
+## Features & Supported Formats
+
+### Implemented
+
+| Category | Input Formats | Output Formats | Notes |
+|---|---|---|---|
+| Image | `png/jpg/jpeg/webp/bmp/ico/gif` | `png/jpg/jpeg/webp/bmp/ico/gif` | Basic image conversion |
+| Text Document | `txt/md/html/htm` | `txt/html` | Plain text and markup conversion |
+| Ebook | `epub` | `pdf` | Requires `pandoc` or `ebook-convert` |
+
+### Planned
+
+- [ ] Generic document -> PDF (currently only `epub -> pdf`)
+- [ ] Audio/video conversion (planned with FFmpeg)
+- [ ] PDF input parsing/conversion
+- [ ] More batch processing and advanced options
+
+### UI Behavior
+
+- Output formats are filtered dynamically based on selected input files
+- In-progress tasks clearly show `Converting...`
+- Long-running jobs (like EPUB -> PDF) show external-tool stage hints
+- Failed tasks support detailed error viewing
+
+## Tech Stack
+
+- **Frontend**: Flutter (Dart)
+- **Backend**: Rust
+- **Bridge**: flutter_rust_bridge
+
+## Quick Start
+
+### 1) Prerequisites (Windows)
+
+1. Install Flutter SDK: <https://docs.flutter.dev/get-started/install/windows>
+2. Install Rust: <https://www.rust-lang.org/tools/install>
+3. Install Visual Studio with the **Desktop development with C++** workload
+
+Verify installation:
 
 ```powershell
-cd c:\rock\coding\code\my\MyApp\ConvertX
+flutter doctor
+rustc --version
+cargo --version
+```
 
-# 1. 初始化 Flutter 平台文件（需要先安装 Flutter）
+### 2) Clone and Run
+
+```powershell
+git clone <your-repo-url>
+cd ConvertX
+
+# Initialize Flutter platform files (first time only)
 flutter create . --platforms=windows
 
-# 2. 安装依赖
+# Install dependencies
 flutter pub get
 
-# 3. 构建 Rust 库
-cd rust && cargo build --release && cd ..
+# Build Rust backend
+cd rust
+cargo build --release
+cd ..
 
-# 4. 运行应用
+# Run app
 flutter run -d windows
 ```
 
-## 项目结构
+## EPUB -> PDF Dependencies
 
+`epub -> pdf` requires one of the following external tools:
+
+- `pandoc`
+- `calibre` (provides `ebook-convert`)
+
+### Verify Installation
+
+```powershell
+pandoc --version
+ebook-convert --version
 ```
+
+### Windows Installation (choose one or both)
+
+```powershell
+winget install Pandoc
+```
+
+```powershell
+winget install calibre.calibre
+```
+
+## Project Structure
+
+```text
 ConvertX/
-├── lib/                    # Flutter 前端
-│   ├── main.dart           # 应用入口
+├── lib/                    # Flutter frontend
+│   ├── main.dart           # App entry
 │   └── src/
-│       ├── screens/        # 页面
-│       ├── widgets/        # UI 组件
-│       ├── providers/      # 状态管理
-│       └── rust/           # Rust 桥接
-├── rust/                   # Rust 后端
+│       ├── screens/        # Screens
+│       ├── widgets/        # UI components
+│       ├── providers/      # State management
+│       └── rust/           # Generated Rust bindings
+├── rust/                   # Rust backend
 │   ├── src/
-│   │   ├── api.rs          # FFI 接口
-│   │   └── converters/     # 转换模块
+│   │   ├── api.rs          # FFI API
+│   │   └── converters/     # Conversion logic
 │   └── Cargo.toml
 └── pubspec.yaml
 ```
 
-## 开发进度
+## Roadmap
 
-- [x] 项目结构创建
-- [x] Rust 转换引擎（图片/文档）
-- [x] Flutter UI 界面
-- [ ] flutter_rust_bridge 集成
-- [ ] 音视频转换（FFmpeg）
-- [ ] 测试和打包
+- [x] Base project structure
+- [x] Image and document conversion
+- [x] EPUB -> PDF via external tools
+- [x] Progress and error feedback improvements
+- [ ] Full flutter_rust_bridge workflow docs
+- [ ] Audio/video conversion (FFmpeg)
+- [ ] Automated testing and release pipeline
+
+## Contributing
+
+Contributions are welcome:
+
+1. Fork the repository
+2. Create a branch: `feat/xxx` or `fix/xxx`
+3. Commit your changes and open a Pull Request
+4. In your PR, describe purpose, scope, and test results
+
+If you find a bug, please open an Issue with minimal reproduction steps.
 
 ## License
 

@@ -13,23 +13,36 @@ pub fn convert_document(
     let output_name = format!("{}.{}", stem, output_ext);
     let output_path = Path::new(output_dir).join(&output_name);
 
-    // 读取输入文件
+     let input_ext = input
+         .extension()
+         .and_then(|e| e.to_str())
+         .unwrap_or("")
+         .to_lowercase();
+
+     // Special case: EPUB -> PDF (via external tools)
+     // NOTE: EPUB is a binary (zip) container; do NOT attempt to read it as UTF-8 text.
+     if input_ext == "epub" {
+         return match output_ext.as_str() {
+             "pdf" => convert_epub_to_pdf(input_path, &output_path),
+             _ => ConvertResult {
+                 success: false,
+                 output_path: None,
+                 error: Some("EPUB 目前仅支持输出 PDF".to_string()),
+             },
+         };
+     }
+
+    // 读取输入文件（仅适用于纯文本类文档）
     let content = match std::fs::read_to_string(input_path) {
         Ok(c) => c,
         Err(e) => {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("无法读取文件: {}", e)),
+                error: Some(format!("无法读取文本文件: {}", e)),
             }
         }
     };
-
-    let input_ext = input
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("")
-        .to_lowercase();
 
     match output_ext.as_str() {
         "html" => {
@@ -39,11 +52,10 @@ pub fn convert_document(
             convert_to_txt(&content, &input_ext, &output_path)
         }
         "pdf" => {
-            // PDF 生成需要更复杂的实现
             ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some("PDF 输出功能开发中...".to_string()),
+                error: Some("PDF 输出暂不支持（目前仅支持 EPUB -> PDF）".to_string()),
             }
         }
         _ => ConvertResult {
@@ -51,6 +63,96 @@ pub fn convert_document(
             output_path: None,
             error: Some(format!("不支持的输出格式: {}", output_ext)),
         },
+    }
+}
+
+fn convert_epub_to_pdf(input_path: &str, output_path: &Path) -> ConvertResult {
+    fn tool_exists(cmd: &str) -> bool {
+        std::process::Command::new(cmd)
+            .arg("--version")
+            .output()
+            .is_ok()
+    }
+
+    let has_pandoc = tool_exists("pandoc");
+    let has_ebook_convert = tool_exists("ebook-convert");
+
+    if !has_pandoc && !has_ebook_convert {
+        return ConvertResult {
+            success: false,
+            output_path: None,
+            error: Some(
+                "未检测到 pandoc 或 calibre(ebook-convert)。请先安装任意一个：\n\n- pandoc: https://pandoc.org/installing.html\n- calibre: 安装后会提供 ebook-convert 命令\n\nWindows 也可用 winget：\n- winget install Pandoc\n- winget install calibre.calibre".to_string(),
+            ),
+        };
+    }
+
+    // Prefer pandoc
+    if has_pandoc {
+        match std::process::Command::new("pandoc")
+            .arg(input_path)
+            .arg("-o")
+            .arg(output_path)
+            .output()
+        {
+            Ok(out) if out.status.success() => {
+                return ConvertResult {
+                    success: true,
+                    output_path: Some(output_path.to_string_lossy().to_string()),
+                    error: None,
+                };
+            }
+            Ok(out) => {
+                let stderr = String::from_utf8_lossy(&out.stderr).to_string();
+                // fallthrough to ebook-convert
+                if !stderr.trim().is_empty() && has_ebook_convert {
+                    // keep for later; nothing else
+                }
+            }
+            Err(_) => {
+                // fallthrough to ebook-convert
+            }
+        }
+    }
+
+    // Fallback to calibre
+    if has_ebook_convert {
+        match std::process::Command::new("ebook-convert")
+            .arg(input_path)
+            .arg(output_path)
+            .output()
+        {
+            Ok(out) if out.status.success() => ConvertResult {
+                success: true,
+                output_path: Some(output_path.to_string_lossy().to_string()),
+                error: None,
+            },
+            Ok(out) => ConvertResult {
+                success: false,
+                output_path: None,
+                error: Some(format!(
+                    "EPUB->PDF 转换失败（ebook-convert 返回码: {:?}）。\n{}",
+                    out.status.code(),
+                    String::from_utf8_lossy(&out.stderr)
+                )),
+            },
+            Err(e) => ConvertResult {
+                success: false,
+                output_path: None,
+                error: Some(format!(
+                    "无法执行 ebook-convert: {}。请确认已安装 calibre，并确保 ebook-convert 在 PATH 中。",
+                    e
+                )),
+            },
+        }
+    } else {
+        ConvertResult {
+            success: false,
+            output_path: None,
+            error: Some(
+                "pandoc 转换失败，且未检测到 calibre(ebook-convert)。请安装 calibre 或检查 pandoc 输出日志。".to_string(),
+            ),
+        }
     }
 }
 

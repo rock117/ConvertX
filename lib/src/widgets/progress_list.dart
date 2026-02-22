@@ -1,12 +1,79 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/conversion_provider.dart';
 
-class ProgressList extends ConsumerWidget {
+class ProgressList extends ConsumerStatefulWidget {
   const ProgressList({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProgressList> createState() => _ProgressListState();
+}
+
+class _ProgressListState extends ConsumerState<ProgressList> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  String _convertingHint(ConversionTask task, Duration duration) {
+    final ext = task.inputPath.split('.').last.toLowerCase();
+    final elapsed = _formatDuration(duration);
+
+    if (ext == 'epub') {
+      return 'EPUB -> PDF: running external tool (pandoc/ebook-convert), may take a few minutes... ($elapsed)';
+    }
+
+    return 'Converting... ($elapsed)';
+  }
+
+  String _formatDuration(Duration duration) {
+    if (duration.inHours > 0) {
+      final minutes = duration.inMinutes % 60;
+      return '${duration.inHours}h ${minutes}m';
+    }
+    if (duration.inMinutes > 0) {
+      final seconds = duration.inSeconds % 60;
+      return '${duration.inMinutes}m ${seconds}s';
+    }
+    return '${duration.inSeconds}s';
+  }
+
+  void _showErrorDetails(BuildContext context, ConversionTask task) {
+    final error = task.error ?? 'Unknown error';
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Conversion Error - ${task.fileName}'),
+        content: SingleChildScrollView(
+          child: SelectableText(error),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final tasks = ref.watch(conversionTasksProvider);
 
     if (tasks.isEmpty) {
@@ -60,7 +127,7 @@ class ProgressList extends ConsumerWidget {
               itemCount: tasks.length,
               itemBuilder: (context, index) {
                 final task = tasks[index];
-                return _buildTaskItem(context, ref, task);
+                return _buildTaskItem(context, task);
               },
             ),
           ),
@@ -70,7 +137,10 @@ class ProgressList extends ConsumerWidget {
     );
   }
 
-  Widget _buildTaskItem(BuildContext context, WidgetRef ref, ConversionTask task) {
+  Widget _buildTaskItem(BuildContext context, ConversionTask task) {
+    final endedAt = task.endedAt ?? DateTime.now();
+    final duration = endedAt.difference(task.startedAt);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -104,6 +174,29 @@ class ProgressList extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (task.status == ConversionStatus.converting)
+                  Text(
+                    _convertingHint(task, duration),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                if (task.status == ConversionStatus.completed)
+                  Text(
+                    'Completed in ${_formatDuration(duration)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.green,
+                        ),
+                  ),
+                if (task.status == ConversionStatus.failed)
+                  Text(
+                    'Failed after ${_formatDuration(duration)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                  ),
                 if (task.status == ConversionStatus.completed && task.outputPath != null)
                   Text(
                     task.outputPath!,
@@ -124,7 +217,7 @@ class ProgressList extends ConsumerWidget {
                   ),
                 if (task.status == ConversionStatus.converting)
                   LinearProgressIndicator(
-                    value: task.progress / 100,
+                    value: null,
                     backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
                   ),
               ],
@@ -141,6 +234,12 @@ class ProgressList extends ConsumerWidget {
                 ref.read(conversionProvider).openOutputFolder(task.outputPath!);
               },
               tooltip: 'Open in folder',
+            )
+          else if (task.status == ConversionStatus.failed && task.error != null)
+            IconButton(
+              icon: const Icon(Icons.info_outline, size: 18),
+              onPressed: () => _showErrorDetails(context, task),
+              tooltip: 'View error details',
             ),
         ],
       ),
