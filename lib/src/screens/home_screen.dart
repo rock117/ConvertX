@@ -4,6 +4,7 @@ import '../providers/conversion_provider.dart';
 import '../widgets/file_drop_zone.dart';
 import '../widgets/convert_panel.dart';
 import '../widgets/progress_list.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -27,7 +28,7 @@ class HomeScreen extends ConsumerWidget {
             children: [
               // Header
               _buildHeader(context),
-              
+
               // Main content
               Expanded(
                 child: Padding(
@@ -40,9 +41,9 @@ class HomeScreen extends ConsumerWidget {
                         flex: 3,
                         child: FileDropZone(),
                       ),
-                      
+
                       const SizedBox(width: 24),
-                      
+
                       // Right panel - Convert options
                       const Expanded(
                         flex: 2,
@@ -52,7 +53,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              
+
               // Progress list
               const ProgressList(),
             ],
@@ -92,13 +93,17 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
-          
+
           const Spacer(),
-          
+
           // Settings button
           IconButton(
             onPressed: () {
-              // TODO: Open settings
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
             },
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings',

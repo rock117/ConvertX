@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'src/screens/home_screen.dart';
+import 'src/providers/settings_provider.dart';
 import 'dart:ffi';
 import 'dart:io';
 import 'src/rust/generated/frb_generated.dart';
@@ -47,11 +49,13 @@ String _resolveRustDylibPath() {
   throw UnsupportedError('Unsupported platform');
 }
 
-class ConvertXApp extends StatelessWidget {
+class ConvertXApp extends ConsumerWidget {
   const ConvertXApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
     return MaterialApp(
       title: 'ConvertX',
       debugShowCheckedModeBanner: false,
@@ -71,7 +75,17 @@ class ConvertXApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Roboto',
       ),
-      themeMode: ThemeMode.system,
+      themeMode: settings.getThemeMode(),
+      locale: settings.getLocale(),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('zh'),
+      ],
       home: const HomeScreen(),
     );
   }
