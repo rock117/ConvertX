@@ -1,6 +1,6 @@
 use flutter_rust_bridge::frb;
 
-/// 文件类型枚举
+/// File type enum
 #[frb]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum FileType {
@@ -11,47 +11,47 @@ pub enum FileType {
     Config,
 }
 
-/// 转换选项
+/// Convert options
 #[frb]
 #[derive(Debug, Clone)]
 pub struct ConvertOptions {
-    /// 输出格式 (如 "png", "jpg", "pdf", "mp4")
+    /// Output format (e.g., "png", "jpg", "pdf", "mp4")
     pub output_format: String,
-    /// 质量 (0-100，用于图片/视频压缩)
+    /// Quality (0-100, for image/video compression)
     pub quality: Option<i32>,
-    /// 宽度 (用于图片/视频调整尺寸)
+    /// Width (for image/video resizing)
     pub width: Option<i32>,
-    /// 高度 (用于图片/视频调整尺寸)
+    /// Height (for image/video resizing)
     pub height: Option<i32>,
-    /// FFmpeg 执行文件路径（如果由 Dart 端下载提供）
+    /// FFmpeg executable path (if provided by Dart side)
     pub ffmpeg_path: Option<String>,
 }
 
-/// 转换结果
+/// Conversion result
 #[frb]
 #[derive(Debug, Clone)]
 pub struct ConvertResult {
-    /// 是否成功
+    /// Whether the conversion was successful
     pub success: bool,
-    /// 输出文件路径
+    /// Output file path
     pub output_path: Option<String>,
-    /// 错误信息
+    /// Error message
     pub error: Option<String>,
 }
 
-/// 转换进度
+/// Conversion progress
 #[frb]
 #[derive(Debug, Clone)]
 pub struct ConvertProgress {
-    /// 任务ID
+    /// Task ID
     pub task_id: String,
-    /// 进度百分比 (0-100)
+    /// Progress percentage (0-100)
     pub progress: i32,
-    /// 当前状态
+    /// Current status
     pub status: String,
 }
 
-/// 检测文件类型
+/// Detect file type
 #[frb]
 pub fn detect_file_type(file_path: String) -> Option<FileType> {
     let ext = std::path::Path::new(&file_path)
@@ -70,7 +70,7 @@ pub fn detect_file_type(file_path: String) -> Option<FileType> {
     }
 }
 
-/// 获取支持的输出格式
+/// Get supported output formats
 #[frb]
 pub fn get_supported_output_formats(file_type: FileType) -> Vec<String> {
     match file_type {
@@ -111,9 +111,9 @@ pub fn get_supported_output_formats(file_type: FileType) -> Vec<String> {
     }
 }
 
-/// 获取某个具体文件（根据扩展名/类型）实际支持的输出格式
+/// Get supported output formats for a specific file (based on extension/type)
 ///
-/// 注意：这会比 `get_supported_output_formats(FileType)` 更严格，避免 UI 展示无效选项。
+/// Note: This is stricter than `get_supported_output_formats(FileType)` to avoid showing invalid options in the UI.
 #[frb]
 pub fn get_supported_output_formats_for_file(file_path: String) -> Vec<String> {
     let ext = std::path::Path::new(&file_path)
@@ -173,7 +173,7 @@ pub fn get_supported_output_formats_for_file(file_path: String) -> Vec<String> {
     }
 }
 
-/// 转换单个文件
+/// Convert single file
 #[frb]
 pub fn convert_file(
     input_path: String,
@@ -183,7 +183,7 @@ pub fn convert_file(
     crate::converters::convert_single(&input_path, &output_dir, &options)
 }
 
-/// 批量转换文件
+/// Batch convert files
 #[frb]
 pub fn convert_files(
     input_paths: Vec<String>,
@@ -196,7 +196,7 @@ pub fn convert_files(
         .collect()
 }
 
-/// 打开文件夹
+/// Open folder
 #[frb]
 pub fn open_folder(folder_path: String) -> bool {
     #[cfg(target_os = "windows")]

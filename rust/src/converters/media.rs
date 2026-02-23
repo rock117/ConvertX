@@ -1,14 +1,17 @@
 use crate::api::{ConvertOptions, ConvertResult};
 use std::path::Path;
 
-/// 转换媒体文件（音视频）
+/// Convert media files (audio/video)
 pub fn convert_media(
     input_path: &str,
     output_dir: &str,
     options: &ConvertOptions,
 ) -> ConvertResult {
     let input = Path::new(input_path);
-    let stem = input.file_stem().and_then(|s| s.to_str()).unwrap_or("output");
+    let stem = input
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("output");
     let output_ext = options.output_format.to_lowercase();
     let output_name = format!("{}.{}", stem, output_ext);
     let output_path = Path::new(output_dir).join(&output_name);
@@ -43,7 +46,11 @@ pub fn convert_media(
     }
 }
 
-fn convert_via_ffmpeg(input_path: &str, output_path: &Path, options: &ConvertOptions) -> ConvertResult {
+fn convert_via_ffmpeg(
+    input_path: &str,
+    output_path: &Path,
+    options: &ConvertOptions,
+) -> ConvertResult {
     let ffmpeg_cmd = options.ffmpeg_path.as_deref().unwrap_or("ffmpeg");
 
     fn tool_exists(cmd: &str) -> bool {
@@ -71,10 +78,10 @@ fn convert_via_ffmpeg(input_path: &str, output_path: &Path, options: &ConvertOpt
         .to_lowercase();
 
     let mut cmd = std::process::Command::new(ffmpeg_cmd);
-    cmd.arg("-y")             // Overwrite output files without asking
-       .arg("-i")
-       .arg(input_path)
-       .arg("-vn");           // Disable video recording (extract audio only)
+    cmd.arg("-y") // Overwrite output files without asking
+        .arg("-i")
+        .arg(input_path)
+        .arg("-vn"); // Disable video recording (extract audio only)
 
     // Format-specific arguments
     match output_ext.as_str() {

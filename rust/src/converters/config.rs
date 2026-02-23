@@ -4,7 +4,7 @@ use serde_yaml::Value as YamlValue;
 use std::collections::HashMap;
 use std::path::Path;
 
-/// 转换配置文件（YAML <-> Properties, YAML <-> JSON）
+/// Convert configuration files (YAML <-> Properties, YAML <-> JSON, Properties <-> JSON)
 pub fn convert_config(
     input_path: &str,
     output_dir: &str,
@@ -35,7 +35,10 @@ pub fn convert_config(
         _ => ConvertResult {
             success: false,
             output_path: None,
-            error: Some(format!("不支持的转换: {} -> {}", input_ext, output_ext)),
+            error: Some(format!(
+                "Unsupported conversion: {} -> {}",
+                input_ext, output_ext
+            )),
         },
     }
 }
@@ -47,7 +50,7 @@ fn yaml_to_properties(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("无法读取 YAML 文件: {}", e)),
+                error: Some(format!("Failed to read YAML file: {}", e)),
             }
         }
     };
@@ -58,7 +61,7 @@ fn yaml_to_properties(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("YAML 解析失败: {}", e)),
+                error: Some(format!("YAML parsing failed: {}", e)),
             }
         }
     };
@@ -91,7 +94,7 @@ fn yaml_to_properties(input_path: &Path, output_path: &Path) -> ConvertResult {
         Err(e) => ConvertResult {
             success: false,
             output_path: None,
-            error: Some(format!("写入 Properties 文件失败: {}", e)),
+            error: Some(format!("Failed to write Properties file: {}", e)),
         },
     }
 }
@@ -103,7 +106,7 @@ fn properties_to_yaml(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("无法读取 Properties 文件: {}", e)),
+                error: Some(format!("Failed to read Properties file: {}", e)),
             }
         }
     };
@@ -127,7 +130,7 @@ fn properties_to_yaml(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("YAML 序列化失败: {}", e)),
+                error: Some(format!("YAML serialization failed: {}", e)),
             }
         }
     };
@@ -141,7 +144,7 @@ fn properties_to_yaml(input_path: &Path, output_path: &Path) -> ConvertResult {
         Err(e) => ConvertResult {
             success: false,
             output_path: None,
-            error: Some(format!("写入 YAML 文件失败: {}", e)),
+            error: Some(format!("Failed to write YAML file: {}", e)),
         },
     }
 }
@@ -322,7 +325,7 @@ fn yaml_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("无法读取 YAML 文件: {}", e)),
+                error: Some(format!("Failed to read YAML file: {}", e)),
             }
         }
     };
@@ -333,7 +336,7 @@ fn yaml_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("YAML 解析失败: {}", e)),
+                error: Some(format!("YAML parsing failed: {}", e)),
             }
         }
     };
@@ -344,7 +347,7 @@ fn yaml_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("转换为 JSON 失败: {}", e)),
+                error: Some(format!("Conversion to JSON failed: {}", e)),
             }
         }
     };
@@ -355,7 +358,7 @@ fn yaml_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("JSON 序列化失败: {}", e)),
+                error: Some(format!("JSON serialization failed: {}", e)),
             }
         }
     };
@@ -369,7 +372,7 @@ fn yaml_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
         Err(e) => ConvertResult {
             success: false,
             output_path: None,
-            error: Some(format!("写入 JSON 文件失败: {}", e)),
+            error: Some(format!("Failed to write JSON file: {}", e)),
         },
     }
 }
@@ -381,7 +384,7 @@ fn json_to_yaml(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("无法读取 JSON 文件: {}", e)),
+                error: Some(format!("Failed to read JSON file: {}", e)),
             }
         }
     };
@@ -392,7 +395,7 @@ fn json_to_yaml(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("JSON 解析失败: {}", e)),
+                error: Some(format!("JSON parsing failed: {}", e)),
             }
         }
     };
@@ -403,7 +406,7 @@ fn json_to_yaml(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("转换为 YAML 失败: {}", e)),
+                error: Some(format!("Conversion to YAML failed: {}", e)),
             }
         }
     };
@@ -414,7 +417,7 @@ fn json_to_yaml(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("YAML 序列化失败: {}", e)),
+                error: Some(format!("YAML serialization failed: {}", e)),
             }
         }
     };
@@ -428,7 +431,7 @@ fn json_to_yaml(input_path: &Path, output_path: &Path) -> ConvertResult {
         Err(e) => ConvertResult {
             success: false,
             output_path: None,
-            error: Some(format!("写入 YAML 文件失败: {}", e)),
+            error: Some(format!("Failed to write YAML file: {}", e)),
         },
     }
 }
@@ -440,7 +443,7 @@ fn properties_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("无法读取 Properties 文件: {}", e)),
+                error: Some(format!("Failed to read Properties file: {}", e)),
             }
         }
     };
@@ -464,7 +467,7 @@ fn properties_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("转换为 JSON 失败: {}", e)),
+                error: Some(format!("Conversion to JSON failed: {}", e)),
             }
         }
     };
@@ -475,7 +478,7 @@ fn properties_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("JSON 序列化失败: {}", e)),
+                error: Some(format!("JSON serialization failed: {}", e)),
             }
         }
     };
@@ -489,7 +492,7 @@ fn properties_to_json(input_path: &Path, output_path: &Path) -> ConvertResult {
         Err(e) => ConvertResult {
             success: false,
             output_path: None,
-            error: Some(format!("写入 JSON 文件失败: {}", e)),
+            error: Some(format!("Failed to write JSON file: {}", e)),
         },
     }
 }
@@ -501,7 +504,7 @@ fn json_to_properties(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("无法读取 JSON 文件: {}", e)),
+                error: Some(format!("Failed to read JSON file: {}", e)),
             }
         }
     };
@@ -512,7 +515,7 @@ fn json_to_properties(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("JSON 解析失败: {}", e)),
+                error: Some(format!("JSON parsing failed: {}", e)),
             }
         }
     };
@@ -523,7 +526,7 @@ fn json_to_properties(input_path: &Path, output_path: &Path) -> ConvertResult {
             return ConvertResult {
                 success: false,
                 output_path: None,
-                error: Some(format!("转换为 YAML 失败: {}", e)),
+                error: Some(format!("Conversion to YAML failed: {}", e)),
             }
         }
     };
@@ -556,7 +559,7 @@ fn json_to_properties(input_path: &Path, output_path: &Path) -> ConvertResult {
         Err(e) => ConvertResult {
             success: false,
             output_path: None,
-            error: Some(format!("写入 Properties 文件失败: {}", e)),
+            error: Some(format!("Failed to write Properties file: {}", e)),
         },
     }
 }

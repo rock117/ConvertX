@@ -5,18 +5,18 @@ pub mod media;
 
 use crate::api::{ConvertOptions, ConvertResult};
 
-/// 转换单个文件
+/// Convert a single file
 pub fn convert_single(
     input_path: &str,
     output_dir: &str,
     options: &ConvertOptions,
 ) -> ConvertResult {
-    // 确保输出目录存在
+    // Ensure output directory exists
     if let Err(e) = std::fs::create_dir_all(output_dir) {
         return ConvertResult {
             success: false,
             output_path: None,
-            error: Some(format!("无法创建输出目录: {}", e)),
+            error: Some(format!("Failed to create output directory: {}", e)),
         };
     }
 
@@ -28,7 +28,7 @@ pub fn convert_single(
             document::convert_document(input_path, output_dir, options)
         }
         Some(crate::api::FileType::Audio) | Some(crate::api::FileType::Video) => {
-            // 音视频转换 (依赖 FFmpeg)
+            // Audio/Video conversion (requires FFmpeg)
             media::convert_media(input_path, output_dir, options)
         }
         Some(crate::api::FileType::Config) => {
@@ -37,7 +37,7 @@ pub fn convert_single(
         None => ConvertResult {
             success: false,
             output_path: None,
-            error: Some("不支持的文件类型".to_string()),
+            error: Some("Unsupported file type".to_string()),
         },
     }
 }
