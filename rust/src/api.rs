@@ -8,6 +8,7 @@ pub enum FileType {
     Document,
     Audio,
     Video,
+    Config,
 }
 
 /// 转换选项
@@ -57,14 +58,14 @@ pub fn detect_file_type(file_path: String) -> Option<FileType> {
         .extension()?
         .to_str()?
         .to_lowercase();
-    
+
     match ext.as_str() {
         "png" | "jpg" | "jpeg" | "webp" | "bmp" | "ico" | "svg" | "gif" => Some(FileType::Image),
-        "pdf" | "md" | "markdown" | "html" | "htm" | "txt" | "doc" | "docx" | "ppt" | "pptx" | "epub" => {
-            Some(FileType::Document)
-        }
+        "pdf" | "md" | "markdown" | "html" | "htm" | "txt" | "doc" | "docx" | "ppt" | "pptx"
+        | "epub" => Some(FileType::Document),
         "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" => Some(FileType::Audio),
         "mp4" | "avi" | "mkv" | "mov" | "webm" | "flv" => Some(FileType::Video),
+        "yaml" | "yml" | "properties" | "json" => Some(FileType::Config),
         _ => None,
     }
 }
@@ -101,6 +102,12 @@ pub fn get_supported_output_formats(file_type: FileType) -> Vec<String> {
             "mkv".to_string(),
             "webm".to_string(),
         ],
+        FileType::Config => vec![
+            "yaml".to_string(),
+            "yml".to_string(),
+            "properties".to_string(),
+            "json".to_string(),
+        ],
     }
 }
 
@@ -131,10 +138,7 @@ pub fn get_supported_output_formats_for_file(file_path: String) -> Vec<String> {
         ],
 
         // Documents: plain-text-ish -> html/txt
-        "html" | "htm" | "txt" => vec![
-            "html".to_string(),
-            "txt".to_string(),
-        ],
+        "html" | "htm" | "txt" => vec!["html".to_string(), "txt".to_string()],
 
         // Office -> Markdown (via pandoc)
         "docx" | "pptx" => vec!["md".to_string()],
@@ -147,13 +151,22 @@ pub fn get_supported_output_formats_for_file(file_path: String) -> Vec<String> {
 
         // Audio: not implemented yet
         "mp3" | "wav" | "flac" | "aac" | "ogg" | "m4a" => vec![],
-        
+
         // Video -> Audio (via FFmpeg)
         "mp4" | "avi" | "mkv" | "mov" | "webm" | "flv" => vec![
             "mp3".to_string(),
             "wav".to_string(),
             "aac".to_string(),
             "flac".to_string(),
+        ],
+
+        // Config files: YAML <-> Properties, YAML <-> JSON, Properties <-> JSON
+        "yaml" | "yml" => vec!["properties".to_string(), "json".to_string()],
+        "properties" => vec!["yaml".to_string(), "yml".to_string(), "json".to_string()],
+        "json" => vec![
+            "yaml".to_string(),
+            "yml".to_string(),
+            "properties".to_string(),
         ],
 
         _ => vec![],
