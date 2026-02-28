@@ -320,21 +320,69 @@ class _ProgressListState extends ConsumerState<ProgressList> {
 
           const SizedBox(width: 12),
 
-          // Action button
-          if (task.status == ConversionStatus.completed)
-            IconButton(
-              icon: const Icon(Icons.folder_open, size: 18),
-              onPressed: () {
-                ref.read(conversionProvider).openOutputFolder(task.outputPath!);
-              },
-              tooltip: 'Open in folder',
-            )
-          else if (task.status == ConversionStatus.failed && task.error != null)
-            IconButton(
-              icon: const Icon(Icons.info_outline, size: 18),
-              onPressed: () => _showErrorDetails(context, task),
-              tooltip: 'View error details',
-            ),
+          // Action buttons
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Completed: open folder
+              if (task.status == ConversionStatus.completed)
+                IconButton(
+                  icon: const Icon(Icons.folder_open, size: 18),
+                  onPressed: () {
+                    ref
+                        .read(conversionProvider)
+                        .openOutputFolder(task.outputPath!);
+                  },
+                  tooltip: 'Open in folder',
+                ),
+
+              // Converting: cancel button
+              if (task.status == ConversionStatus.converting)
+                IconButton(
+                  icon: const Icon(Icons.close, size: 18),
+                  onPressed: () {
+                    ref.read(conversionTasksProvider.notifier).updateTask(
+                          task.id,
+                          status: ConversionStatus.cancelled,
+                          endedAt: DateTime.now(),
+                          clearOutputPath: true,
+                          error: 'Cancelled by user',
+                        );
+                  },
+                  tooltip: 'Cancel',
+                  color: Theme.of(context).colorScheme.error,
+                ),
+
+              // Failed: view error + retry
+              if (task.status == ConversionStatus.failed) ...[
+                if (task.error != null)
+                  IconButton(
+                    icon: const Icon(Icons.info_outline, size: 18),
+                    onPressed: () => _showErrorDetails(context, task),
+                    tooltip: 'View error details',
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 18),
+                  onPressed: () {
+                    ref.read(conversionProvider).retryTask(task.id);
+                  },
+                  tooltip: 'Retry',
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ],
+
+              // Cancelled: retry
+              if (task.status == ConversionStatus.cancelled)
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 18),
+                  onPressed: () {
+                    ref.read(conversionProvider).retryTask(task.id);
+                  },
+                  tooltip: 'Retry',
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+            ],
+          ),
         ],
       ),
     );
@@ -371,6 +419,12 @@ class _ProgressListState extends ConsumerState<ProgressList> {
         textColor = Theme.of(context).colorScheme.error;
         text = 'Failed after ${_formatDuration(duration)}';
         icon = Icons.error_outline;
+        break;
+      case ConversionStatus.cancelled:
+        bgColor = Colors.orange.withValues(alpha: 0.1);
+        textColor = Colors.orange[700]!;
+        text = 'Cancelled';
+        icon = Icons.cancel_outlined;
         break;
     }
 

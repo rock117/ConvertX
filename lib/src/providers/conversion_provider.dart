@@ -8,7 +8,8 @@ import '../rust/generated/api.dart' as rust_api;
 import 'ffmpeg_provider.dart';
 
 // State providers
-final fileListProvider = StateNotifierProvider<FileListNotifier, List<String>>((ref) {
+final fileListProvider =
+    StateNotifierProvider<FileListNotifier, List<String>>((ref) {
   return FileListNotifier();
 });
 
@@ -20,7 +21,8 @@ final qualityProvider = StateProvider<int>((ref) => 85);
 
 final showAdvancedOptionsProvider = StateProvider<bool>((ref) => false);
 
-final outputDirectoryProvider = StateNotifierProvider<OutputDirectoryNotifier, String>((ref) {
+final outputDirectoryProvider =
+    StateNotifierProvider<OutputDirectoryNotifier, String>((ref) {
   return OutputDirectoryNotifier();
 });
 
@@ -31,7 +33,8 @@ final supportedFormatsProvider = FutureProvider<List<String>>((ref) async {
   }
 
   try {
-    final formats = await rust_api.getSupportedOutputFormatsForFile(filePath: files.first);
+    final formats =
+        await rust_api.getSupportedOutputFormatsForFile(filePath: files.first);
     if (formats.isEmpty) {
       // If file type is not supported or there is no valid output, return empty list
       // so the UI can disable selection.
@@ -43,7 +46,8 @@ final supportedFormatsProvider = FutureProvider<List<String>>((ref) async {
   }
 });
 
-final conversionTasksProvider = StateNotifierProvider<ConversionTasksNotifier, List<ConversionTask>>((ref) {
+final conversionTasksProvider =
+    StateNotifierProvider<ConversionTasksNotifier, List<ConversionTask>>((ref) {
   return ConversionTasksNotifier();
 });
 
@@ -62,6 +66,7 @@ enum ConversionStatus {
   converting,
   completed,
   failed,
+  cancelled,
 }
 
 class ConversionTask {
@@ -97,7 +102,7 @@ class FileListNotifier extends StateNotifier<List<String>> {
       allowMultiple: true,
       type: FileType.any,
     );
-    
+
     if (result != null && result.files.isNotEmpty) {
       state = [...state, ...result.paths.whereType<String>()];
     }
@@ -128,7 +133,7 @@ class OutputDirectoryNotifier extends StateNotifier<String> {
 
   Future<String> getDefaultOutputDirectory() async {
     if (state.isNotEmpty) return state;
-    
+
     final documents = await getApplicationDocumentsDirectory();
     final outputDir = '${documents.path}/ConvertX_Output';
     await Directory(outputDir).create(recursive: true);
@@ -143,7 +148,8 @@ class ConversionTasksNotifier extends StateNotifier<List<ConversionTask>> {
     state = [task, ...state];
   }
 
-  void updateTask(String id, {
+  void updateTask(
+    String id, {
     ConversionStatus? status,
     int? progress,
     String? outputPath,
@@ -171,7 +177,13 @@ class ConversionTasksNotifier extends StateNotifier<List<ConversionTask>> {
   }
 
   void clearCompleted() {
-    state = state.where((task) => task.status != ConversionStatus.completed).toList();
+    state = state
+        .where((task) => task.status != ConversionStatus.completed)
+        .toList();
+  }
+
+  void removeTask(String id) {
+    state = state.where((task) => task.id != id).toList();
   }
 }
 
@@ -188,14 +200,17 @@ class ConversionNotifier {
     final files = ref.read(fileListProvider);
     final outputFormat = ref.read(outputFormatProvider);
     final quality = ref.read(qualityProvider);
-    final outputDir = await ref.read(outputDirectoryProvider.notifier).getDefaultOutputDirectory();
+    final outputDir = await ref
+        .read(outputDirectoryProvider.notifier)
+        .getDefaultOutputDirectory();
 
     // Check if FFmpeg is required for any of the tasks (video -> audio)
     bool requiresFfmpeg = false;
     for (final file in files) {
       final ext = file.split('.').last.toLowerCase();
       final isVideo = ['mp4', 'avi', 'mkv', 'mov', 'webm', 'flv'].contains(ext);
-      final isAudioOutput = ['mp3', 'wav', 'aac', 'flac'].contains(outputFormat);
+      final isAudioOutput =
+          ['mp3', 'wav', 'aac', 'flac'].contains(outputFormat);
       if (isVideo && isAudioOutput) {
         requiresFfmpeg = true;
         break;
@@ -208,20 +223,20 @@ class ConversionNotifier {
       final success = await ref.read(ffmpegProvider.notifier).ensureFfmpeg();
       if (!success) {
         // Find existing task IDs or skip, let's just abort with error state handled by provider UI
-        final error = ref.read(ffmpegProvider).errorMessage ?? 'Failed to setup FFmpeg';
+        final error =
+            ref.read(ffmpegProvider).errorMessage ?? 'Failed to setup FFmpeg';
         for (final file in files) {
           final fileName = file.split(RegExp(r'[\\/]')).last;
-          final taskId = '${DateTime.now().microsecondsSinceEpoch}_${file.hashCode.abs()}';
-          ref.read(conversionTasksProvider.notifier).addTask(
-            ConversionTask(
-              id: taskId,
-              fileName: fileName,
-              inputPath: file,
-              startedAt: DateTime.now(),
-              status: ConversionStatus.failed,
-              error: error,
-            )
-          );
+          final taskId =
+              '${DateTime.now().microsecondsSinceEpoch}_${file.hashCode.abs()}';
+          ref.read(conversionTasksProvider.notifier).addTask(ConversionTask(
+                id: taskId,
+                fileName: fileName,
+                inputPath: file,
+                startedAt: DateTime.now(),
+                status: ConversionStatus.failed,
+                error: error,
+              ));
         }
         return;
       }
@@ -230,8 +245,9 @@ class ConversionNotifier {
 
     for (final file in files) {
       final fileName = file.split(RegExp(r'[\\/]')).last;
-      final taskId = '${DateTime.now().microsecondsSinceEpoch}_${file.hashCode.abs()}';
-      
+      final taskId =
+          '${DateTime.now().microsecondsSinceEpoch}_${file.hashCode.abs()}';
+
       final task = ConversionTask(
         id: taskId,
         fileName: fileName,
@@ -240,7 +256,7 @@ class ConversionNotifier {
         status: ConversionStatus.converting,
         progress: 1,
       );
-      
+
       ref.read(conversionTasksProvider.notifier).addTask(task);
 
       try {
@@ -262,54 +278,53 @@ class ConversionNotifier {
 
         if (result.success && result.outputPath != null) {
           ref.read(conversionTasksProvider.notifier).updateTask(
-            taskId,
-            status: ConversionStatus.completed,
-            progress: 100,
-            outputPath: result.outputPath,
-            endedAt: DateTime.now(),
-            clearError: true,
-          );
+                taskId,
+                status: ConversionStatus.completed,
+                progress: 100,
+                outputPath: result.outputPath,
+                endedAt: DateTime.now(),
+                clearError: true,
+              );
         } else {
           ref.read(conversionTasksProvider.notifier).updateTask(
-            taskId,
-            status: ConversionStatus.failed,
-            progress: 0,
-            endedAt: DateTime.now(),
-            clearOutputPath: true,
-            error: result.error ?? 'Unknown error',
-          );
+                taskId,
+                status: ConversionStatus.failed,
+                progress: 0,
+                endedAt: DateTime.now(),
+                clearOutputPath: true,
+                error: result.error ?? 'Unknown error',
+              );
         }
       } on TimeoutException {
         ref.read(conversionTasksProvider.notifier).updateTask(
-          taskId,
-          status: ConversionStatus.failed,
-          progress: 0,
-          endedAt: DateTime.now(),
-          clearOutputPath: true,
-          error: '转换超时（15分钟）。外部工具可能卡住，请重试或改用另一个工具。',
-        );
+              taskId,
+              status: ConversionStatus.failed,
+              progress: 0,
+              endedAt: DateTime.now(),
+              clearOutputPath: true,
+              error: '转换超时（15分钟）。外部工具可能卡住，请重试或改用另一个工具。',
+            );
       } catch (e) {
         ref.read(conversionTasksProvider.notifier).updateTask(
-          taskId,
-          status: ConversionStatus.failed,
-          progress: 0,
-          endedAt: DateTime.now(),
-          clearOutputPath: true,
-          error: e.toString(),
-        );
+              taskId,
+              status: ConversionStatus.failed,
+              progress: 0,
+              endedAt: DateTime.now(),
+              clearOutputPath: true,
+              error: e.toString(),
+            );
       } finally {
-        final stillConverting = ref
-            .read(conversionTasksProvider)
-            .any((t) => t.id == taskId && t.status == ConversionStatus.converting);
+        final stillConverting = ref.read(conversionTasksProvider).any(
+            (t) => t.id == taskId && t.status == ConversionStatus.converting);
         if (stillConverting) {
           ref.read(conversionTasksProvider.notifier).updateTask(
-            taskId,
-            status: ConversionStatus.failed,
-            progress: 0,
-            endedAt: DateTime.now(),
-            clearOutputPath: true,
-            error: '转换状态异常：任务已结束但未收到完成信号。',
-          );
+                taskId,
+                status: ConversionStatus.failed,
+                progress: 0,
+                endedAt: DateTime.now(),
+                clearOutputPath: true,
+                error: '转换状态异常：任务已结束但未收到完成信号。',
+              );
         }
       }
     }
@@ -352,6 +367,107 @@ class ConversionNotifier {
     } catch (_) {
       // Final fallback.
       await OpenFile.open(directory);
+    }
+  }
+
+  Future<void> retryTask(String taskId) async {
+    final task =
+        ref.read(conversionTasksProvider).firstWhere((t) => t.id == taskId);
+
+    // Reset task to pending state
+    ref.read(conversionTasksProvider.notifier).updateTask(
+          taskId,
+          status: ConversionStatus.converting,
+          progress: 0,
+          endedAt: null,
+          clearOutputPath: true,
+          clearError: true,
+        );
+
+    final outputFormat = ref.read(outputFormatProvider);
+    final quality = ref.read(qualityProvider);
+    final outputDir = await ref
+        .read(outputDirectoryProvider.notifier)
+        .getDefaultOutputDirectory();
+
+    // Check if FFmpeg is required
+    String? customFfmpegPath;
+    final ext = task.inputPath.split('.').last.toLowerCase();
+    final isVideo = ['mp4', 'avi', 'mkv', 'mov', 'webm', 'flv'].contains(ext);
+    final isAudioOutput = ['mp3', 'wav', 'aac', 'flac'].contains(outputFormat);
+
+    if (isVideo && isAudioOutput) {
+      final success = await ref.read(ffmpegProvider.notifier).ensureFfmpeg();
+      if (!success) {
+        final error =
+            ref.read(ffmpegProvider).errorMessage ?? 'Failed to setup FFmpeg';
+        ref.read(conversionTasksProvider.notifier).updateTask(
+              taskId,
+              status: ConversionStatus.failed,
+              progress: 0,
+              endedAt: DateTime.now(),
+              clearOutputPath: true,
+              error: error,
+            );
+        return;
+      }
+      customFfmpegPath = ref.read(ffmpegProvider).executablePath;
+    }
+
+    try {
+      final options = rust_api.ConvertOptions(
+        outputFormat: outputFormat,
+        quality: quality,
+        width: null,
+        height: null,
+        ffmpegPath: customFfmpegPath,
+      );
+
+      final result = await rust_api
+          .convertFile(
+            inputPath: task.inputPath,
+            outputDir: outputDir,
+            options: options,
+          )
+          .timeout(const Duration(minutes: 15));
+
+      if (result.success && result.outputPath != null) {
+        ref.read(conversionTasksProvider.notifier).updateTask(
+              taskId,
+              status: ConversionStatus.completed,
+              progress: 100,
+              outputPath: result.outputPath,
+              endedAt: DateTime.now(),
+              clearError: true,
+            );
+      } else {
+        ref.read(conversionTasksProvider.notifier).updateTask(
+              taskId,
+              status: ConversionStatus.failed,
+              progress: 0,
+              endedAt: DateTime.now(),
+              clearOutputPath: true,
+              error: result.error ?? 'Unknown error',
+            );
+      }
+    } on TimeoutException {
+      ref.read(conversionTasksProvider.notifier).updateTask(
+            taskId,
+            status: ConversionStatus.failed,
+            progress: 0,
+            endedAt: DateTime.now(),
+            clearOutputPath: true,
+            error: 'Conversion timeout (15 minutes)',
+          );
+    } catch (e) {
+      ref.read(conversionTasksProvider.notifier).updateTask(
+            taskId,
+            status: ConversionStatus.failed,
+            progress: 0,
+            endedAt: DateTime.now(),
+            clearOutputPath: true,
+            error: e.toString(),
+          );
     }
   }
 }
