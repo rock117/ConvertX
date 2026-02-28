@@ -209,15 +209,40 @@ class _ProgressListState extends ConsumerState<ProgressList> {
     final endedAt = task.endedAt ?? DateTime.now();
     final duration = endedAt.difference(task.startedAt);
 
-    // Get file size
+    // Get source file size
     String fileSize = '';
+    int? sourceBytes;
     try {
       final file = File(task.inputPath);
       if (file.existsSync()) {
-        final bytes = file.lengthSync();
-        fileSize = _formatFileSize(bytes);
+        sourceBytes = file.lengthSync();
+        fileSize = _formatFileSize(sourceBytes);
       }
     } catch (_) {}
+
+    // Get output file size (if completed)
+    String? outputFileSize;
+    int? outputBytes;
+    String? compressionRatio;
+    if (task.status == ConversionStatus.completed && task.outputPath != null) {
+      try {
+        final outputFile = File(task.outputPath!);
+        if (outputFile.existsSync()) {
+          outputBytes = outputFile.lengthSync();
+          outputFileSize = _formatFileSize(outputBytes);
+
+          // Calculate compression ratio
+          if (sourceBytes != null && sourceBytes > 0) {
+            final ratio = ((sourceBytes - outputBytes) / sourceBytes * 100);
+            if (ratio > 0) {
+              compressionRatio = '-${ratio.toStringAsFixed(1)}%';
+            } else if (ratio < 0) {
+              compressionRatio = '+${(-ratio).toStringAsFixed(1)}%';
+            }
+          }
+        }
+      } catch (_) {}
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -259,7 +284,9 @@ class _ProgressListState extends ConsumerState<ProgressList> {
                     if (fileSize.isNotEmpty) ...[
                       const SizedBox(width: 8),
                       Text(
-                        fileSize,
+                        outputFileSize != null
+                            ? '$fileSize → $outputFileSize'
+                            : fileSize,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -268,6 +295,33 @@ class _ProgressListState extends ConsumerState<ProgressList> {
                               fontSize: 11,
                             ),
                       ),
+                      if (compressionRatio != null) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: compressionRatio.startsWith('-')
+                                ? Colors.green.withValues(alpha: 0.1)
+                                : Colors.orange.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            compressionRatio,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  color: compressionRatio.startsWith('-')
+                                      ? Colors.green[700]
+                                      : Colors.orange[700],
+                                  fontFamily: 'monospace',
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                      ],
                     ],
                   ],
                 ),
