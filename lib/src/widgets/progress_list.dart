@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -76,7 +77,9 @@ class _ProgressListState extends ConsumerState<ProgressList> {
   @override
   Widget build(BuildContext context) {
     final tasks = ref.watch(conversionTasksProvider);
-    final isDownloadingFfmpeg = ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.downloading || ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.extracting;
+    final isDownloadingFfmpeg =
+        ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.downloading ||
+            ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.extracting;
 
     if (tasks.isEmpty && !isDownloadingFfmpeg) {
       return const SizedBox.shrink();
@@ -126,13 +129,22 @@ class _ProgressListState extends ConsumerState<ProgressList> {
             child: ListView.builder(
               shrinkWrap: true,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: tasks.length + (ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.downloading || ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.extracting ? 1 : 0),
+              itemCount: tasks.length +
+                  (ref.watch(ffmpegProvider).status ==
+                              FfmpegDownloadStatus.downloading ||
+                          ref.watch(ffmpegProvider).status ==
+                              FfmpegDownloadStatus.extracting
+                      ? 1
+                      : 0),
               itemBuilder: (context, index) {
-                final isDownloadingFfmpeg = ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.downloading || ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.extracting;
+                final isDownloadingFfmpeg = ref.watch(ffmpegProvider).status ==
+                        FfmpegDownloadStatus.downloading ||
+                    ref.watch(ffmpegProvider).status ==
+                        FfmpegDownloadStatus.extracting;
                 if (isDownloadingFfmpeg && index == 0) {
                   return _buildFfmpegDownloadItem(context);
                 }
-                
+
                 final taskIndex = isDownloadingFfmpeg ? index - 1 : index;
                 final task = tasks[taskIndex];
                 return _buildTaskItem(context, task);
@@ -170,7 +182,9 @@ class _ProgressListState extends ConsumerState<ProgressList> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  isExtracting ? 'Extracting...' : 'Downloading: ${(state.progress * 100).toStringAsFixed(1)}%',
+                  isExtracting
+                      ? 'Extracting...'
+                      : 'Downloading: ${(state.progress * 100).toStringAsFixed(1)}%',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -179,7 +193,8 @@ class _ProgressListState extends ConsumerState<ProgressList> {
                 ),
                 LinearProgressIndicator(
                   value: isExtracting ? null : state.progress,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainerHigh,
                 ),
               ],
             ),
@@ -193,6 +208,16 @@ class _ProgressListState extends ConsumerState<ProgressList> {
   Widget _buildTaskItem(BuildContext context, ConversionTask task) {
     final endedAt = task.endedAt ?? DateTime.now();
     final duration = endedAt.difference(task.startedAt);
+
+    // Get file size
+    String fileSize = '';
+    try {
+      final file = File(task.inputPath);
+      if (file.existsSync()) {
+        final bytes = file.lengthSync();
+        fileSize = _formatFileSize(bytes);
+      }
+    } catch (_) {}
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -216,62 +241,78 @@ class _ProgressListState extends ConsumerState<ProgressList> {
           ),
           const SizedBox(width: 12),
 
-          // File name
+          // File name and info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  task.fileName,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.fileName,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (fileSize.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        fileSize,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                              fontFamily: 'monospace',
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
+                  ],
                 ),
-                if (task.status == ConversionStatus.converting)
-                  Text(
-                    _convertingHint(task, duration),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                const SizedBox(height: 4),
+
+                // Status badge
+                _buildStatusBadge(context, task, duration),
+
+                if (task.status == ConversionStatus.completed &&
+                    task.outputPath != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      task.outputPath!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                    ),
                   ),
-                if (task.status == ConversionStatus.completed)
-                  Text(
-                    'Completed in ${_formatDuration(duration)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.green,
-                        ),
-                  ),
-                if (task.status == ConversionStatus.failed)
-                  Text(
-                    'Failed after ${_formatDuration(duration)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                  ),
-                if (task.status == ConversionStatus.completed && task.outputPath != null)
-                  Text(
-                    task.outputPath!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                if (task.status == ConversionStatus.failed && task.error != null)
-                  Text(
-                    task.error!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+                if (task.status == ConversionStatus.failed &&
+                    task.error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      task.error!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                            fontSize: 11,
+                          ),
+                    ),
                   ),
                 if (task.status == ConversionStatus.converting)
-                  LinearProgressIndicator(
-                    value: null,
-                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: LinearProgressIndicator(
+                      value: null,
+                      backgroundColor:
+                          Theme.of(context).colorScheme.surfaceContainerHigh,
+                    ),
                   ),
               ],
             ),
@@ -297,5 +338,93 @@ class _ProgressListState extends ConsumerState<ProgressList> {
         ],
       ),
     );
+  }
+
+  Widget _buildStatusBadge(
+      BuildContext context, ConversionTask task, Duration duration) {
+    Color bgColor;
+    Color textColor;
+    String text;
+    IconData? icon;
+
+    switch (task.status) {
+      case ConversionStatus.pending:
+        bgColor = Colors.grey.withValues(alpha: 0.1);
+        textColor = Colors.grey[700]!;
+        text = 'Waiting';
+        icon = Icons.schedule;
+        break;
+      case ConversionStatus.converting:
+        bgColor = Theme.of(context).colorScheme.primary.withValues(alpha: 0.1);
+        textColor = Theme.of(context).colorScheme.primary;
+        text = _convertingHint(task, duration);
+        icon = Icons.sync;
+        break;
+      case ConversionStatus.completed:
+        bgColor = Colors.green.withValues(alpha: 0.1);
+        textColor = Colors.green[700]!;
+        text = 'Completed in ${_formatDuration(duration)}';
+        icon = Icons.check_circle_outline;
+        break;
+      case ConversionStatus.failed:
+        bgColor = Theme.of(context).colorScheme.error.withValues(alpha: 0.1);
+        textColor = Theme.of(context).colorScheme.error;
+        text = 'Failed after ${_formatDuration(duration)}';
+        icon = Icons.error_outline;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null && task.status != ConversionStatus.converting) ...[
+            Icon(icon, size: 12, color: textColor),
+            const SizedBox(width: 4),
+          ],
+          if (task.status == ConversionStatus.converting)
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(textColor),
+              ),
+            )
+          else
+            Text(
+              text,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          if (task.status == ConversionStatus.converting) ...[
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 }

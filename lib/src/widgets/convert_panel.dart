@@ -58,8 +58,13 @@ class ConvertPanel extends ConsumerWidget {
               children: [
                 // Output format
                 _buildFormatSelector(context, ref, outputFormat),
-                
+
                 const SizedBox(height: 20),
+
+                // Output directory
+                _buildOutputDirectory(context, ref),
+
+                const SizedBox(height: 16),
 
                 // Advanced options toggle
                 InkWell(
@@ -70,9 +75,7 @@ class ConvertPanel extends ConsumerWidget {
                   child: Row(
                     children: [
                       Icon(
-                        showAdvanced
-                            ? Icons.expand_less
-                            : Icons.expand_more,
+                        showAdvanced ? Icons.expand_less : Icons.expand_more,
                         color: Theme.of(context).colorScheme.primary,
                       ),
                       const SizedBox(width: 8),
@@ -119,7 +122,8 @@ class ConvertPanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildFormatSelector(BuildContext context, WidgetRef ref, String format) {
+  Widget _buildFormatSelector(
+      BuildContext context, WidgetRef ref, String format) {
     final supportedFormatsAsync = ref.watch(supportedFormatsProvider);
 
     return Column(
@@ -134,16 +138,28 @@ class ConvertPanel extends ConsumerWidget {
         const SizedBox(height: 8),
         supportedFormatsAsync.when(
           data: (supportedFormats) {
-            final items = supportedFormats
-                .map((f) => DropdownMenuItem(
-                      value: f,
-                      child: Text(f.toUpperCase()),
-                    ))
-                .toList();
+            final items = supportedFormats.map((f) {
+              final description = _getFormatDescription(f);
+              return DropdownMenuItem(
+                value: f,
+                child: Text(
+                  description != null
+                      ? '${f.toUpperCase()} - $description'
+                      : f.toUpperCase(),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'monospace',
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            }).toList();
 
             final hasItems = items.isNotEmpty;
             final safeValue = hasItems
-                ? (supportedFormats.contains(format) ? format : supportedFormats.first)
+                ? (supportedFormats.contains(format)
+                    ? format
+                    : supportedFormats.first)
                 : null;
 
             // Ensure selected value is always valid.
@@ -159,8 +175,11 @@ class ConvertPanel extends ConsumerWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                helperText: hasItems ? null : '该文件类型暂无可用输出格式',
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                helperText: hasItems
+                    ? null
+                    : 'No available output formats for this file type',
               ),
               items: hasItems ? items : const <DropdownMenuItem<String>>[],
               onChanged: hasItems
@@ -174,7 +193,7 @@ class ConvertPanel extends ConsumerWidget {
           },
           loading: () => const LinearProgressIndicator(minHeight: 2),
           error: (_, __) => Text(
-            '无法获取支持的输出格式',
+            'Failed to get supported output formats',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.error,
                 ),
@@ -184,7 +203,116 @@ class ConvertPanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildAdvancedOptions(BuildContext context, WidgetRef ref, int quality) {
+  String? _getFormatDescription(String format) {
+    final descriptions = {
+      // Image formats
+      'png': 'Transparency, lossless',
+      'jpg': 'Small size, universal',
+      'jpeg': 'Small size, universal',
+      'webp': 'Modern, efficient',
+      'bmp': 'Uncompressed',
+      'ico': 'Windows icon',
+      'gif': 'Animated support',
+      // Document formats
+      'pdf': 'Document standard',
+      'html': 'Web format',
+      'txt': 'Plain text',
+      'md': 'Markdown',
+      'docx': 'Word document',
+      'pptx': 'PowerPoint',
+      // Config formats
+      'yaml': 'Human-readable config',
+      'yml': 'YAML shorthand',
+      'json': 'Data interchange',
+      'properties': 'Java properties',
+      // Audio formats
+      'mp3': 'Compressed audio',
+      'wav': 'Lossless audio',
+      'aac': 'Efficient audio',
+      'flac': 'Lossless compression',
+      'ogg': 'Open format',
+      'm4a': 'Apple audio',
+      // Video formats
+      'mp4': 'Universal video',
+      'avi': 'Legacy format',
+      'mkv': 'High quality',
+      'mov': 'QuickTime',
+      'webm': 'Web format',
+      'flv': 'Flash video',
+    };
+    return descriptions[format.toLowerCase()];
+  }
+
+  Widget _buildOutputDirectory(BuildContext context, WidgetRef ref) {
+    final outputDir = ref.watch(outputDirectoryProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Output Folder',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.folder_outlined,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        outputDir.isEmpty
+                            ? 'Default: Documents/ConvertX_Output'
+                            : outputDir,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: outputDir.isEmpty
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant
+                                  : null,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.outlined(
+              onPressed: () async {
+                await ref
+                    .read(outputDirectoryProvider.notifier)
+                    .pickDirectory();
+              },
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              tooltip: 'Change folder',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdvancedOptions(
+      BuildContext context, WidgetRef ref, int quality) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -202,23 +330,6 @@ class ConvertPanel extends ConsumerWidget {
           onChanged: (value) {
             ref.read(qualityProvider.notifier).state = value.round();
           },
-        ),
-
-        const SizedBox(height: 16),
-
-        // Output directory
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  await ref.read(outputDirectoryProvider.notifier).pickDirectory();
-                },
-                icon: const Icon(Icons.folder_outlined),
-                label: const Text('Output Folder'),
-              ),
-            ),
-          ],
         ),
       ],
     );
