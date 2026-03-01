@@ -423,8 +423,16 @@ class _ProgressListState extends ConsumerState<ProgressList> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Completed: open folder
-              if (task.status == ConversionStatus.completed)
+              // Completed: reverse convert + open folder
+              if (task.status == ConversionStatus.completed) ...[
+                IconButton(
+                  icon: const Icon(Icons.swap_horiz, size: 18),
+                  onPressed: () {
+                    ref.read(conversionProvider).reverseConvert(task.id);
+                  },
+                  tooltip: 'Convert back to original format',
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 IconButton(
                   icon: const Icon(Icons.folder_open, size: 18),
                   onPressed: () {
@@ -434,6 +442,7 @@ class _ProgressListState extends ConsumerState<ProgressList> {
                   },
                   tooltip: 'Open in folder',
                 ),
+              ],
 
               // Converting: cancel button
               if (task.status == ConversionStatus.converting)
