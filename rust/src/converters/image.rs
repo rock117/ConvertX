@@ -38,25 +38,6 @@ pub fn convert_image(
         }
     };
 
-    // Resize
-    let final_img = if let (Some(w), Some(h)) = (options.width, options.height) {
-        img.resize(w as u32, h as u32, image::imageops::FilterType::Lanczos3)
-    } else if let Some(w) = options.width {
-        img.resize(
-            w as u32,
-            (w as f64 * img.height() as f64 / img.width() as f64) as u32,
-            image::imageops::FilterType::Lanczos3,
-        )
-    } else if let Some(h) = options.height {
-        img.resize(
-            (h as f64 * img.width() as f64 / img.height() as f64) as u32,
-            h as u32,
-            image::imageops::FilterType::Lanczos3,
-        )
-    } else {
-        img
-    };
-
     // Determine output format
     let format = match output_ext.as_str() {
         "png" => ImageFormat::Png,
@@ -74,17 +55,67 @@ pub fn convert_image(
         }
     };
 
-    // Save image
-    match final_img.save_with_format(&output_path, format) {
-        Ok(()) => ConvertResult {
-            success: true,
-            output_path: Some(output_path.to_string_lossy().to_string()),
-            error: None,
-        },
-        Err(e) => ConvertResult {
-            success: false,
-            output_path: None,
-            error: Some(format!("Failed to save: {}", e)),
-        },
+    // Save image with quality settings
+    let quality = options.image_quality.unwrap_or(85).clamp(1, 100) as u8;
+
+    match format {
+        ImageFormat::Jpeg => {
+            // JPEG supports quality setting
+            let mut output_file = match std::fs::File::create(&output_path) {
+                Ok(f) => f,
+                Err(e) => {
+                    return ConvertResult {
+                        success: false,
+                        output_path: None,
+                        error: Some(format!("Failed to create output file: {}", e)),
+                    }
+                }
+            };
+
+            let encoder =
+                image::codecs::jpeg::JpegEncoder::new_with_quality(&mut output_file, quality);
+            match img.write_with_encoder(encoder) {
+                Ok(()) => ConvertResult {
+                    success: true,
+                    output_path: Some(output_path.to_string_lossy().to_string()),
+                    error: None,
+                },
+                Err(e) => ConvertResult {
+                    success: false,
+                    output_path: None,
+                    error: Some(format!("Failed to save JPEG: {}", e)),
+                },
+            }
+        }
+        ImageFormat::WebP => {
+            // WebP - use default encoding for now
+            match img.save_with_format(&output_path, format) {
+                Ok(()) => ConvertResult {
+                    success: true,
+                    output_path: Some(output_path.to_string_lossy().to_string()),
+                    error: None,
+                },
+                Err(e) => ConvertResult {
+                    success: false,
+                    output_path: None,
+                    error: Some(format!("Failed to save WebP: {}", e)),
+                },
+            }
+        }
+        _ => {
+            // PNG, BMP, ICO, GIF - no quality setting needed (lossless or fixed format)
+            match img.save_with_format(&output_path, format) {
+                Ok(()) => ConvertResult {
+                    success: true,
+                    output_path: Some(output_path.to_string_lossy().to_string()),
+                    error: None,
+                },
+                Err(e) => ConvertResult {
+                    success: false,
+                    output_path: None,
+                    error: Some(format!("Failed to save: {}", e)),
+                },
+            }
+        }
     }
 }

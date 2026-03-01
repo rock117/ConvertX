@@ -10,7 +10,6 @@ class ConvertPanel extends ConsumerWidget {
     final files = ref.watch(fileListProvider);
     final isConverting = ref.watch(isConvertingProvider);
     final outputFormat = ref.watch(outputFormatProvider);
-    final quality = ref.watch(qualityProvider);
     final showAdvanced = ref.watch(showAdvancedOptionsProvider);
 
     return Container(
@@ -90,7 +89,7 @@ class ConvertPanel extends ConsumerWidget {
                 // Advanced options
                 if (showAdvanced) ...[
                   const SizedBox(height: 16),
-                  _buildAdvancedOptions(context, ref, quality),
+                  _buildAdvancedOptions(context, ref, outputFormat),
                 ],
 
                 const SizedBox(height: 24),
@@ -312,25 +311,178 @@ class ConvertPanel extends ConsumerWidget {
   }
 
   Widget _buildAdvancedOptions(
-      BuildContext context, WidgetRef ref, int quality) {
+      BuildContext context, WidgetRef ref, String outputFormat) {
+    final isImageFormat = [
+      'png',
+      'jpg',
+      'jpeg',
+      'webp',
+      'bmp',
+      'ico',
+      'gif',
+    ].contains(outputFormat.toLowerCase());
+
+    final isAudioFormat = [
+      'mp3',
+      'wav',
+      'aac',
+      'flac',
+      'ogg',
+      'm4a',
+    ].contains(outputFormat.toLowerCase());
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Quality slider
+        // Image quality
+        if (isImageFormat) ...[
+          _buildImageQualityOptions(context, ref),
+        ],
+
+        // Audio options
+        if (isAudioFormat) ...[
+          _buildAudioOptions(context, ref, outputFormat),
+        ],
+
+        // Info for other formats
+        if (!isImageFormat && !isAudioFormat) ...[
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'No advanced options available for this format',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildImageQualityOptions(BuildContext context, WidgetRef ref) {
+    final imageQuality = ref.watch(imageQualityProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Text(
-          'Quality: $quality%',
+          'Image Quality: $imageQuality%',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         Slider(
-          value: quality.toDouble(),
+          value: imageQuality.toDouble(),
           min: 1,
           max: 100,
           divisions: 100,
-          label: '$quality%',
+          label: '$imageQuality%',
           onChanged: (value) {
-            ref.read(qualityProvider.notifier).state = value.round();
+            ref.read(imageQualityProvider.notifier).state = value.round();
           },
         ),
+        const SizedBox(height: 8),
+        Text(
+          'Higher quality = larger file size',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAudioOptions(
+      BuildContext context, WidgetRef ref, String outputFormat) {
+    final audioQuality = ref.watch(audioQualityProvider);
+    final audioBitrate = ref.watch(audioBitrateProvider);
+    final audioSampleRate = ref.watch(audioSampleRateProvider);
+
+    final isLossless = outputFormat.toLowerCase() == 'flac' ||
+        outputFormat.toLowerCase() == 'wav';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Quality/Bitrate (for lossy formats)
+        if (!isLossless) ...[
+          Text(
+            outputFormat.toLowerCase() == 'mp3' ||
+                    outputFormat.toLowerCase() == 'ogg'
+                ? 'Quality: ${audioQuality} (0=best, 9=worst)'
+                : 'Bitrate: ${audioBitrate ?? 192} kbps',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          if (outputFormat.toLowerCase() == 'mp3' ||
+              outputFormat.toLowerCase() == 'ogg')
+            Slider(
+              value: audioQuality.toDouble(),
+              min: 0,
+              max: 9,
+              divisions: 9,
+              label: audioQuality.toString(),
+              onChanged: (value) {
+                ref.read(audioQualityProvider.notifier).state = value.round();
+              },
+            )
+          else
+            Slider(
+              value: (audioBitrate ?? 192).toDouble(),
+              min: 64,
+              max: 320,
+              divisions: 16,
+              label: '${audioBitrate ?? 192} kbps',
+              onChanged: (value) {
+                ref.read(audioBitrateProvider.notifier).state = value.round();
+              },
+            ),
+          const SizedBox(height: 12),
+        ],
+
+        // Sample rate
+        Text(
+          'Sample Rate',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<int?>(
+          value: audioSampleRate,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          ),
+          items: const [
+            DropdownMenuItem(value: null, child: Text('Auto')),
+            DropdownMenuItem(value: 44100, child: Text('44.1 kHz (CD)')),
+            DropdownMenuItem(value: 48000, child: Text('48 kHz (DVD)')),
+            DropdownMenuItem(value: 96000, child: Text('96 kHz (HD)')),
+          ],
+          onChanged: (value) {
+            ref.read(audioSampleRateProvider.notifier).state = value;
+          },
+        ),
+        if (isLossless) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Lossless format - no quality loss',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
       ],
     );
   }

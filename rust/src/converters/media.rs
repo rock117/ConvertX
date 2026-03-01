@@ -65,7 +65,7 @@ fn convert_via_ffmpeg(
             success: false,
             output_path: None,
             error: Some(
-                "FFmpeg is required for media conversions.\n\nInstall FFmpeg:\n- Windows (winget): winget install ffmpeg\n- Or download from https://ffmpeg.org/download.html"
+                "FFmpeg is required for media conversions.\n\nInstall FFmpeg:\n- Windows (winget): winget install ffmpeg\n- macOS: brew install ffmpeg\n- Or download from https://ffmpeg.org/download.html"
                     .to_string(),
             ),
         };
@@ -83,21 +83,67 @@ fn convert_via_ffmpeg(
         .arg(input_path)
         .arg("-vn"); // Disable video recording (extract audio only)
 
-    // Format-specific arguments
+    // Format-specific arguments with quality settings
     match output_ext.as_str() {
         "mp3" => {
-            cmd.arg("-c:a").arg("libmp3lame").arg("-q:a").arg("2");
+            cmd.arg("-c:a").arg("libmp3lame");
+            // Use quality (0-9, lower is better) or default to 2
+            let quality = options.audio_quality.unwrap_or(2).clamp(0, 9);
+            cmd.arg("-q:a").arg(quality.to_string());
         }
         "wav" => {
             cmd.arg("-c:a").arg("pcm_s16le");
+            // WAV supports sample rate
+            if let Some(sample_rate) = options.audio_sample_rate {
+                cmd.arg("-ar").arg(sample_rate.to_string());
+            }
         }
         "aac" => {
-            cmd.arg("-c:a").arg("aac").arg("-b:a").arg("192k");
+            cmd.arg("-c:a").arg("aac");
+            // Use bitrate (kbps) or quality or default to 192k
+            if let Some(bitrate) = options.audio_bitrate {
+                cmd.arg("-b:a").arg(format!("{}k", bitrate));
+            } else if let Some(quality) = options.audio_quality {
+                // Map quality (1-100) to bitrate (64-320)
+                let bitrate = ((quality as f32 / 100.0) * 256.0 + 64.0) as i32;
+                cmd.arg("-b:a").arg(format!("{}k", bitrate));
+            } else {
+                cmd.arg("-b:a").arg("192k");
+            }
         }
         "flac" => {
             cmd.arg("-c:a").arg("flac");
+            // FLAC supports sample rate
+            if let Some(sample_rate) = options.audio_sample_rate {
+                cmd.arg("-ar").arg(sample_rate.to_string());
+            }
+        }
+        "ogg" => {
+            cmd.arg("-c:a").arg("libvorbis");
+            // Use quality (0-10, lower is better) or default to 5
+            let quality = options.audio_quality.unwrap_or(5).clamp(0, 10);
+            cmd.arg("-q:a").arg(quality.to_string());
+        }
+        "m4a" => {
+            cmd.arg("-c:a").arg("aac");
+            // Use bitrate (kbps) or quality or default to 192k
+            if let Some(bitrate) = options.audio_bitrate {
+                cmd.arg("-b:a").arg(format!("{}k", bitrate));
+            } else if let Some(quality) = options.audio_quality {
+                let bitrate = ((quality as f32 / 100.0) * 256.0 + 64.0) as i32;
+                cmd.arg("-b:a").arg(format!("{}k", bitrate));
+            } else {
+                cmd.arg("-b:a").arg("192k");
+            }
         }
         _ => {}
+    }
+
+    // Apply sample rate if specified (for formats that support it)
+    if matches!(output_ext.as_str(), "mp3" | "aac" | "ogg" | "m4a") {
+        if let Some(sample_rate) = options.audio_sample_rate {
+            cmd.arg("-ar").arg(sample_rate.to_string());
+        }
     }
 
     cmd.arg(output_path);

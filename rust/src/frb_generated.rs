@@ -282,15 +282,25 @@ impl SseDecode for crate::api::ConvertOptions {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_outputFormat = <String>::sse_decode(deserializer);
-        let mut var_quality = <Option<i32>>::sse_decode(deserializer);
-        let mut var_width = <Option<i32>>::sse_decode(deserializer);
-        let mut var_height = <Option<i32>>::sse_decode(deserializer);
+        let mut var_imageQuality = <Option<i32>>::sse_decode(deserializer);
+        let mut var_audioQuality = <Option<i32>>::sse_decode(deserializer);
+        let mut var_audioBitrate = <Option<i32>>::sse_decode(deserializer);
+        let mut var_audioSampleRate = <Option<i32>>::sse_decode(deserializer);
+        let mut var_videoCrf = <Option<i32>>::sse_decode(deserializer);
+        let mut var_videoBitrate = <Option<i32>>::sse_decode(deserializer);
+        let mut var_videoWidth = <Option<i32>>::sse_decode(deserializer);
+        let mut var_videoHeight = <Option<i32>>::sse_decode(deserializer);
         let mut var_ffmpegPath = <Option<String>>::sse_decode(deserializer);
         return crate::api::ConvertOptions {
             output_format: var_outputFormat,
-            quality: var_quality,
-            width: var_width,
-            height: var_height,
+            image_quality: var_imageQuality,
+            audio_quality: var_audioQuality,
+            audio_bitrate: var_audioBitrate,
+            audio_sample_rate: var_audioSampleRate,
+            video_crf: var_videoCrf,
+            video_bitrate: var_videoBitrate,
+            video_width: var_videoWidth,
+            video_height: var_videoHeight,
             ffmpeg_path: var_ffmpegPath,
         };
     }
@@ -455,9 +465,14 @@ impl flutter_rust_bridge::IntoDart for crate::api::ConvertOptions {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
             self.output_format.into_into_dart().into_dart(),
-            self.quality.into_into_dart().into_dart(),
-            self.width.into_into_dart().into_dart(),
-            self.height.into_into_dart().into_dart(),
+            self.image_quality.into_into_dart().into_dart(),
+            self.audio_quality.into_into_dart().into_dart(),
+            self.audio_bitrate.into_into_dart().into_dart(),
+            self.audio_sample_rate.into_into_dart().into_dart(),
+            self.video_crf.into_into_dart().into_dart(),
+            self.video_bitrate.into_into_dart().into_dart(),
+            self.video_width.into_into_dart().into_dart(),
+            self.video_height.into_into_dart().into_dart(),
             self.ffmpeg_path.into_into_dart().into_dart(),
         ]
         .into_dart()
@@ -523,9 +538,14 @@ impl SseEncode for crate::api::ConvertOptions {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <String>::sse_encode(self.output_format, serializer);
-        <Option<i32>>::sse_encode(self.quality, serializer);
-        <Option<i32>>::sse_encode(self.width, serializer);
-        <Option<i32>>::sse_encode(self.height, serializer);
+        <Option<i32>>::sse_encode(self.image_quality, serializer);
+        <Option<i32>>::sse_encode(self.audio_quality, serializer);
+        <Option<i32>>::sse_encode(self.audio_bitrate, serializer);
+        <Option<i32>>::sse_encode(self.audio_sample_rate, serializer);
+        <Option<i32>>::sse_encode(self.video_crf, serializer);
+        <Option<i32>>::sse_encode(self.video_bitrate, serializer);
+        <Option<i32>>::sse_encode(self.video_width, serializer);
+        <Option<i32>>::sse_encode(self.video_height, serializer);
         <Option<String>>::sse_encode(self.ffmpeg_path, serializer);
     }
 }

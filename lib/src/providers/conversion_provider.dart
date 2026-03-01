@@ -17,7 +17,19 @@ final dragStateProvider = StateProvider<bool>((ref) => false);
 
 final outputFormatProvider = StateProvider<String>((ref) => 'png');
 
-final qualityProvider = StateProvider<int>((ref) => 85);
+// Image settings
+final imageQualityProvider = StateProvider<int>((ref) => 85);
+
+// Audio settings
+final audioQualityProvider = StateProvider<int>((ref) => 2);
+final audioBitrateProvider = StateProvider<int?>((ref) => null);
+final audioSampleRateProvider = StateProvider<int?>((ref) => null);
+
+// Video settings
+final videoCrfProvider = StateProvider<int>((ref) => 23);
+final videoBitrateProvider = StateProvider<int?>((ref) => null);
+final videoWidthProvider = StateProvider<int?>((ref) => null);
+final videoHeightProvider = StateProvider<int?>((ref) => null);
 
 final showAdvancedOptionsProvider = StateProvider<bool>((ref) => false);
 
@@ -202,7 +214,6 @@ class ConversionNotifier {
     }
     final files = ref.read(fileListProvider);
     final outputFormat = ref.read(outputFormatProvider);
-    final quality = ref.read(qualityProvider);
     final outputDir = await ref
         .read(outputDirectoryProvider.notifier)
         .getDefaultOutputDirectory();
@@ -265,9 +276,14 @@ class ConversionNotifier {
       try {
         final options = rust_api.ConvertOptions(
           outputFormat: outputFormat,
-          quality: quality,
-          width: null,
-          height: null,
+          imageQuality: ref.read(imageQualityProvider),
+          audioQuality: ref.read(audioQualityProvider),
+          audioBitrate: ref.read(audioBitrateProvider),
+          audioSampleRate: ref.read(audioSampleRateProvider),
+          videoCrf: ref.read(videoCrfProvider),
+          videoBitrate: ref.read(videoBitrateProvider),
+          videoWidth: ref.read(videoWidthProvider),
+          videoHeight: ref.read(videoHeightProvider),
           ffmpegPath: customFfmpegPath,
         );
 
@@ -389,16 +405,20 @@ class ConversionNotifier {
 
     try {
       final outputFormat = ref.read(outputFormatProvider);
-      final quality = ref.read(qualityProvider);
       final outputDir = await ref
           .read(outputDirectoryProvider.notifier)
           .getDefaultOutputDirectory();
 
       final options = rust_api.ConvertOptions(
         outputFormat: outputFormat,
-        quality: quality,
-        width: null,
-        height: null,
+        imageQuality: ref.read(imageQualityProvider),
+        audioQuality: ref.read(audioQualityProvider),
+        audioBitrate: ref.read(audioBitrateProvider),
+        audioSampleRate: ref.read(audioSampleRateProvider),
+        videoCrf: ref.read(videoCrfProvider),
+        videoBitrate: ref.read(videoBitrateProvider),
+        videoWidth: ref.read(videoWidthProvider),
+        videoHeight: ref.read(videoHeightProvider),
         ffmpegPath: null,
       );
 
@@ -454,7 +474,6 @@ class ConversionNotifier {
 
     // Create a new task with output file as input and original format as target
     final outputFormat = originalExt;
-    final quality = ref.read(qualityProvider);
     final outputDir = await ref
         .read(outputDirectoryProvider.notifier)
         .getDefaultOutputDirectory();
@@ -477,9 +496,14 @@ class ConversionNotifier {
     try {
       final options = rust_api.ConvertOptions(
         outputFormat: outputFormat,
-        quality: quality,
-        width: null,
-        height: null,
+        imageQuality: ref.read(imageQualityProvider),
+        audioQuality: ref.read(audioQualityProvider),
+        audioBitrate: ref.read(audioBitrateProvider),
+        audioSampleRate: ref.read(audioSampleRateProvider),
+        videoCrf: ref.read(videoCrfProvider),
+        videoBitrate: ref.read(videoBitrateProvider),
+        videoWidth: ref.read(videoWidthProvider),
+        videoHeight: ref.read(videoHeightProvider),
         ffmpegPath: null,
       );
 

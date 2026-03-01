@@ -50,32 +50,57 @@ class ConvertOptions {
   /// 输出格式 (如 "png", "jpg", "pdf", "mp4")
   final String outputFormat;
 
-  /// 质量 (0-100，用于图片/视频压缩)
-  final int? quality;
+  /// 图片质量 (1-100, 用于 JPEG/WebP 压缩)
+  final int? imageQuality;
 
-  /// 宽度 (用于图片/视频调整尺寸)
-  final int? width;
+  /// 音频质量 (MP3/OGG: 0-9, 越低越好; 或 AAC 的比特率如 192)
+  final int? audioQuality;
 
-  /// 高度 (用于图片/视频调整尺寸)
-  final int? height;
+  /// 音频比特率 kbps (如 128, 192, 320) - audioQuality 的替代选项
+  final int? audioBitrate;
+
+  /// 音频采样率 Hz (如 44100, 48000)
+  final int? audioSampleRate;
+
+  /// 视频 CRF 质量 (0-51, 越低越好, H.264 默认 23)
+  final int? videoCrf;
+
+  /// 视频比特率 kbps (如 2000, 5000) - videoCrf 的替代选项
+  final int? videoBitrate;
+
+  /// 视频宽度 (用于调整尺寸)
+  final int? videoWidth;
+
+  /// 视频高度 (用于调整尺寸)
+  final int? videoHeight;
 
   /// FFmpeg 执行文件路径（如果由 Dart 端下载提供）
   final String? ffmpegPath;
 
   const ConvertOptions({
     required this.outputFormat,
-    this.quality,
-    this.width,
-    this.height,
+    this.imageQuality,
+    this.audioQuality,
+    this.audioBitrate,
+    this.audioSampleRate,
+    this.videoCrf,
+    this.videoBitrate,
+    this.videoWidth,
+    this.videoHeight,
     this.ffmpegPath,
   });
 
   @override
   int get hashCode =>
       outputFormat.hashCode ^
-      quality.hashCode ^
-      width.hashCode ^
-      height.hashCode ^
+      imageQuality.hashCode ^
+      audioQuality.hashCode ^
+      audioBitrate.hashCode ^
+      audioSampleRate.hashCode ^
+      videoCrf.hashCode ^
+      videoBitrate.hashCode ^
+      videoWidth.hashCode ^
+      videoHeight.hashCode ^
       ffmpegPath.hashCode;
 
   @override
@@ -84,9 +109,14 @@ class ConvertOptions {
       other is ConvertOptions &&
           runtimeType == other.runtimeType &&
           outputFormat == other.outputFormat &&
-          quality == other.quality &&
-          width == other.width &&
-          height == other.height &&
+          imageQuality == other.imageQuality &&
+          audioQuality == other.audioQuality &&
+          audioBitrate == other.audioBitrate &&
+          audioSampleRate == other.audioSampleRate &&
+          videoCrf == other.videoCrf &&
+          videoBitrate == other.videoBitrate &&
+          videoWidth == other.videoWidth &&
+          videoHeight == other.videoHeight &&
           ffmpegPath == other.ffmpegPath;
 }
 

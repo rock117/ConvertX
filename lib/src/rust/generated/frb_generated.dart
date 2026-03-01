@@ -300,14 +300,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ConvertOptions dco_decode_convert_options(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
     return ConvertOptions(
       outputFormat: dco_decode_String(arr[0]),
-      quality: dco_decode_opt_box_autoadd_i_32(arr[1]),
-      width: dco_decode_opt_box_autoadd_i_32(arr[2]),
-      height: dco_decode_opt_box_autoadd_i_32(arr[3]),
-      ffmpegPath: dco_decode_opt_String(arr[4]),
+      imageQuality: dco_decode_opt_box_autoadd_i_32(arr[1]),
+      audioQuality: dco_decode_opt_box_autoadd_i_32(arr[2]),
+      audioBitrate: dco_decode_opt_box_autoadd_i_32(arr[3]),
+      audioSampleRate: dco_decode_opt_box_autoadd_i_32(arr[4]),
+      videoCrf: dco_decode_opt_box_autoadd_i_32(arr[5]),
+      videoBitrate: dco_decode_opt_box_autoadd_i_32(arr[6]),
+      videoWidth: dco_decode_opt_box_autoadd_i_32(arr[7]),
+      videoHeight: dco_decode_opt_box_autoadd_i_32(arr[8]),
+      ffmpegPath: dco_decode_opt_String(arr[9]),
     );
   }
 
@@ -420,15 +425,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ConvertOptions sse_decode_convert_options(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_outputFormat = sse_decode_String(deserializer);
-    var var_quality = sse_decode_opt_box_autoadd_i_32(deserializer);
-    var var_width = sse_decode_opt_box_autoadd_i_32(deserializer);
-    var var_height = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_imageQuality = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_audioQuality = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_audioBitrate = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_audioSampleRate = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_videoCrf = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_videoBitrate = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_videoWidth = sse_decode_opt_box_autoadd_i_32(deserializer);
+    var var_videoHeight = sse_decode_opt_box_autoadd_i_32(deserializer);
     var var_ffmpegPath = sse_decode_opt_String(deserializer);
     return ConvertOptions(
         outputFormat: var_outputFormat,
-        quality: var_quality,
-        width: var_width,
-        height: var_height,
+        imageQuality: var_imageQuality,
+        audioQuality: var_audioQuality,
+        audioBitrate: var_audioBitrate,
+        audioSampleRate: var_audioSampleRate,
+        videoCrf: var_videoCrf,
+        videoBitrate: var_videoBitrate,
+        videoWidth: var_videoWidth,
+        videoHeight: var_videoHeight,
         ffmpegPath: var_ffmpegPath);
   }
 
@@ -568,9 +583,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       ConvertOptions self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.outputFormat, serializer);
-    sse_encode_opt_box_autoadd_i_32(self.quality, serializer);
-    sse_encode_opt_box_autoadd_i_32(self.width, serializer);
-    sse_encode_opt_box_autoadd_i_32(self.height, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.imageQuality, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.audioQuality, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.audioBitrate, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.audioSampleRate, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.videoCrf, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.videoBitrate, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.videoWidth, serializer);
+    sse_encode_opt_box_autoadd_i_32(self.videoHeight, serializer);
     sse_encode_opt_String(self.ffmpegPath, serializer);
   }
 

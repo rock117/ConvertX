@@ -17,12 +17,22 @@ pub enum FileType {
 pub struct ConvertOptions {
     /// Output format (e.g., "png", "jpg", "pdf", "mp4")
     pub output_format: String,
-    /// Quality (0-100, for image/video compression)
-    pub quality: Option<i32>,
-    /// Width (for image/video resizing)
-    pub width: Option<i32>,
-    /// Height (for image/video resizing)
-    pub height: Option<i32>,
+    /// Image quality (1-100, for JPEG/WebP compression)
+    pub image_quality: Option<i32>,
+    /// Audio quality (0-9 for MP3/OGG, lower is better; or bitrate like 192 for AAC)
+    pub audio_quality: Option<i32>,
+    /// Audio bitrate in kbps (e.g., 128, 192, 320) - alternative to audio_quality
+    pub audio_bitrate: Option<i32>,
+    /// Audio sample rate in Hz (e.g., 44100, 48000)
+    pub audio_sample_rate: Option<i32>,
+    /// Video CRF quality (0-51, lower is better, 23 is default for H.264)
+    pub video_crf: Option<i32>,
+    /// Video bitrate in kbps (e.g., 2000, 5000) - alternative to video_crf
+    pub video_bitrate: Option<i32>,
+    /// Video width (for resizing)
+    pub video_width: Option<i32>,
+    /// Video height (for resizing)
+    pub video_height: Option<i32>,
     /// FFmpeg executable path (if provided by Dart side)
     pub ffmpeg_path: Option<String>,
 }
