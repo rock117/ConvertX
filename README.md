@@ -3,7 +3,7 @@
 > A desktop file converter built with **Flutter + Rust**.
 
 [![status](https://img.shields.io/badge/status-active%20development-orange)](./README.md)
-[![platform](https://img.shields.io/badge/platform-Windows-blue)](./README.md)
+[![platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-blue)](./README.md)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 > [!WARNING]
@@ -76,15 +76,26 @@ Current focus areas:
 
 ## Quick Start
 
-### 1) Prerequisites (Windows)
+### 1) Prerequisites
+
+#### Windows
 
 1. Install Flutter SDK: <https://docs.flutter.dev/get-started/install/windows>
 2. Install Rust: <https://www.rust-lang.org/tools/install>
 3. Install Visual Studio with the **Desktop development with C++** workload
 
+#### macOS
+
+1. Install Flutter SDK: <https://docs.flutter.dev/get-started/install/macos>
+2. Install Rust: <https://www.rust-lang.org/tools/install>
+3. Install Xcode Command Line Tools:
+   ```bash
+   xcode-select --install
+   ```
+
 Verify installation:
 
-```powershell
+```bash
 flutter doctor
 rustc --version
 cargo --version
@@ -92,12 +103,12 @@ cargo --version
 
 ### 2) Clone and Run
 
-```powershell
+```bash
 git clone <your-repo-url>
 cd ConvertX
 
 # Initialize Flutter platform files (first time only)
-flutter create . --platforms=windows
+flutter create . --platforms=windows,macos
 
 # Install dependencies
 flutter pub get
@@ -107,8 +118,11 @@ cd rust
 cargo build --release
 cd ..
 
-# Run app
+# Run app (Windows)
 flutter run -d windows
+
+# Run app (macOS)
+flutter run -d macos
 ```
 
 ## Media Conversion Dependencies
@@ -117,14 +131,20 @@ flutter run -d windows
 
 ### Verify Installation
 
-```powershell
+```bash
 ffmpeg -version
 ```
 
-### Windows Installation
+### Installation
 
+**Windows:**
 ```powershell
 winget install ffmpeg
+```
+
+**macOS:**
+```bash
+brew install ffmpeg
 ```
 
 ## EPUB -> PDF Dependencies
@@ -136,19 +156,29 @@ winget install ffmpeg
 
 ### Verify Installation
 
-```powershell
+```bash
 pandoc --version
 ebook-convert --version
 ```
 
-### Windows Installation (choose one or both)
+### Installation
 
+**Windows:**
 ```powershell
+# Pandoc
 winget install Pandoc
+
+# or Calibre
+winget install calibre.calibre
 ```
 
-```powershell
-winget install calibre.calibre
+**macOS:**
+```bash
+# Pandoc
+brew install pandoc
+
+# or Calibre
+brew install --cask calibre
 ```
 
 ## Markdown <-> Office Dependencies
@@ -157,14 +187,20 @@ winget install calibre.calibre
 
 ### Verify Installation
 
-```powershell
+```bash
 pandoc --version
 ```
 
-### Windows Installation
+### Installation
 
+**Windows:**
 ```powershell
 winget install Pandoc
+```
+
+**macOS:**
+```bash
+brew install pandoc
 ```
 
 ## Markdown -> PDF Dependencies
@@ -178,11 +214,20 @@ winget install Pandoc
 
 **Verify Installation:**
 
+**Windows:**
 ```powershell
-# Check if Chrome is installed (Windows)
+# Check if Chrome is installed
 Get-Command chrome -ErrorAction SilentlyContinue
 # or check for Chromium
 Get-Command chromium -ErrorAction SilentlyContinue
+```
+
+**macOS:**
+```bash
+# Check if Chrome is installed
+ls "/Applications/Google Chrome.app" 2>/dev/null
+# or check for Chromium
+ls "/Applications/Chromium.app" 2>/dev/null
 ```
 
 **Why Chromium?**

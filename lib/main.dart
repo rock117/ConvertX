@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'src/screens/home_screen.dart';
 import 'src/providers/settings_provider.dart';
-import 'dart:ffi';
 import 'dart:io';
 import 'src/rust/generated/frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
@@ -40,11 +39,23 @@ String _resolveRustDylibPath() {
     }
     return 'convertx_core.dll';
   }
+  if (Platform.isMacOS) {
+    final cwd = Directory.current.path;
+    final candidates = <String>[
+      '$cwd/rust/target/release/libconvertx_core.dylib',
+      '$cwd/../rust/target/release/libconvertx_core.dylib',
+      'rust/target/release/libconvertx_core.dylib',
+      '../rust/target/release/libconvertx_core.dylib',
+      'libconvertx_core.dylib',
+    ];
+    for (final p in candidates) {
+      final f = File(p);
+      if (f.existsSync()) return f.absolute.path;
+    }
+    return 'libconvertx_core.dylib';
+  }
   if (Platform.isLinux) {
     return 'libconvertx_core.so';
-  }
-  if (Platform.isMacOS) {
-    return 'libconvertx_core.dylib';
   }
   throw UnsupportedError('Unsupported platform');
 }
