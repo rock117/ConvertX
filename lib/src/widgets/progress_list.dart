@@ -81,9 +81,7 @@ class _ProgressListState extends ConsumerState<ProgressList> {
         ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.downloading ||
             ref.watch(ffmpegProvider).status == FfmpegDownloadStatus.extracting;
 
-    if (tasks.isEmpty && !isDownloadingFfmpeg) {
-      return const SizedBox.shrink();
-    }
+    final hasContent = tasks.isNotEmpty || isDownloadingFfmpeg;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -91,67 +89,115 @@ class _ProgressListState extends ConsumerState<ProgressList> {
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.history,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Conversion Tasks',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.history,
+                          size: 20,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Conversion Tasks',
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                        const Spacer(),
+                        if (hasContent)
+                          TextButton(
+                            onPressed: () {
+                              ref
+                                  .read(conversionTasksProvider.notifier)
+                                  .clearCompleted();
+                            },
+                            child: const Text('Clear Completed'),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  // Content area
+                  if (hasContent)
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: tasks.length +
+                          (ref.watch(ffmpegProvider).status ==
+                                      FfmpegDownloadStatus.downloading ||
+                                  ref.watch(ffmpegProvider).status ==
+                                      FfmpegDownloadStatus.extracting
+                              ? 1
+                              : 0),
+                      itemBuilder: (context, index) {
+                        final isDownloadingFfmpeg =
+                            ref.watch(ffmpegProvider).status ==
+                                    FfmpegDownloadStatus.downloading ||
+                                ref.watch(ffmpegProvider).status ==
+                                    FfmpegDownloadStatus.extracting;
+                        if (isDownloadingFfmpeg && index == 0) {
+                          return _buildFfmpegDownloadItem(context);
+                        }
+
+                        final taskIndex =
+                            isDownloadingFfmpeg ? index - 1 : index;
+                        final task = tasks[taskIndex];
+                        return _buildTaskItem(context, task);
+                      },
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.inbox_outlined,
+                              size: 48,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withValues(alpha: 0.5),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Drop files above to start converting them',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
-                ),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    ref.read(conversionTasksProvider.notifier).clearCompleted();
-                  },
-                  child: const Text('Clear Completed'),
-                ),
-              ],
+                    ),
+                  const SizedBox(height: 8),
+                ],
+              ),
             ),
-          ),
-
-          // Task list
-          Flexible(
-            child: ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: tasks.length +
-                  (ref.watch(ffmpegProvider).status ==
-                              FfmpegDownloadStatus.downloading ||
-                          ref.watch(ffmpegProvider).status ==
-                              FfmpegDownloadStatus.extracting
-                      ? 1
-                      : 0),
-              itemBuilder: (context, index) {
-                final isDownloadingFfmpeg = ref.watch(ffmpegProvider).status ==
-                        FfmpegDownloadStatus.downloading ||
-                    ref.watch(ffmpegProvider).status ==
-                        FfmpegDownloadStatus.extracting;
-                if (isDownloadingFfmpeg && index == 0) {
-                  return _buildFfmpegDownloadItem(context);
-                }
-
-                final taskIndex = isDownloadingFfmpeg ? index - 1 : index;
-                final task = tasks[taskIndex];
-                return _buildTaskItem(context, task);
-              },
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
+          );
+        },
       ),
     );
   }
