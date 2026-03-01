@@ -49,71 +49,76 @@ class ConvertPanel extends ConsumerWidget {
 
           const Divider(height: 1),
 
-          // Settings
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Output format
-                _buildFormatSelector(context, ref, outputFormat),
+          // Settings content (scrollable)
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Output format
+                  _buildFormatSelector(context, ref, outputFormat),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                // Output directory
-                _buildOutputDirectory(context, ref),
+                  // Output directory
+                  _buildOutputDirectory(context, ref),
 
-                const SizedBox(height: 16),
-
-                // Advanced options toggle
-                InkWell(
-                  onTap: () {
-                    ref.read(showAdvancedOptionsProvider.notifier).state =
-                        !showAdvanced;
-                  },
-                  child: Row(
-                    children: [
-                      Icon(
-                        showAdvanced ? Icons.expand_less : Icons.expand_more,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Advanced Options',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Advanced options
-                if (showAdvanced) ...[
                   const SizedBox(height: 16),
-                  _buildAdvancedOptions(context, ref, outputFormat),
-                ],
 
-                const SizedBox(height: 24),
-
-                // Convert button
-                FilledButton.icon(
-                  onPressed: (files.isEmpty || isConverting)
-                      ? null
-                      : () {
-                          ref.read(conversionProvider).startConversion();
-                        },
-                  icon: isConverting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.transform),
-                  label: Text(isConverting ? 'Converting...' : 'Convert'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  // Advanced options toggle
+                  InkWell(
+                    onTap: () {
+                      ref.read(showAdvancedOptionsProvider.notifier).state =
+                          !showAdvanced;
+                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          showAdvanced ? Icons.expand_less : Icons.expand_more,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Advanced Options',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+
+                  // Advanced options
+                  if (showAdvanced) ...[
+                    const SizedBox(height: 16),
+                    _buildAdvancedOptions(context, ref, outputFormat),
+                  ],
+
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+
+          // Convert button (fixed at bottom)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: FilledButton.icon(
+              onPressed: (files.isEmpty || isConverting)
+                  ? null
+                  : () {
+                      ref.read(conversionProvider).startConversion();
+                    },
+              icon: isConverting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.transform),
+              label: Text(isConverting ? 'Converting...' : 'Convert'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
             ),
           ),
         ],
