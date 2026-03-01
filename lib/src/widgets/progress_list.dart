@@ -86,7 +86,6 @@ class _ProgressListState extends ConsumerState<ProgressList> {
     }
 
     return Container(
-      constraints: const BoxConstraints(maxHeight: 200),
       margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,

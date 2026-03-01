@@ -6,8 +6,6 @@ class ResizableDivider extends StatefulWidget {
   final double minSize;
   final double maxSize;
   final ValueChanged<double>? onResize;
-  final Color? color;
-  final Color? hoverColor;
 
   const ResizableDivider({
     super.key,
@@ -16,8 +14,6 @@ class ResizableDivider extends StatefulWidget {
     this.minSize = 0.2,
     this.maxSize = 0.9,
     this.onResize,
-    this.color,
-    this.hoverColor,
   });
 
   @override
@@ -73,24 +69,7 @@ class _ResizableDividerState extends State<ResizableDivider> {
         child: Container(
           width: isHorizontal ? double.infinity : 8,
           height: isHorizontal ? 8 : double.infinity,
-          decoration: BoxDecoration(
-            color: _isDragging || _isHovering
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).dividerColor,
-            borderRadius: BorderRadius.circular(1),
-          ),
-          child: Center(
-            child: Container(
-              width: isHorizontal ? 48 : 2,
-              height: isHorizontal ? 2 : 48,
-              decoration: BoxDecoration(
-                color: _isDragging || _isHovering
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).dividerColor,
-                borderRadius: BorderRadius.circular(1),
-              ),
-            ),
-          ),
+          color: Colors.transparent,
         ),
       ),
     );

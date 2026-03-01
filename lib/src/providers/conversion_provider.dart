@@ -21,6 +21,9 @@ final qualityProvider = StateProvider<int>((ref) => 85);
 
 final showAdvancedOptionsProvider = StateProvider<bool>((ref) => false);
 
+final horizontalPanelRatioProvider = StateProvider<double>((ref) => 0.6);
+final verticalPanelRatioProvider = StateProvider<double>((ref) => 0.75);
+
 final outputDirectoryProvider =
     StateNotifierProvider<OutputDirectoryNotifier, String>((ref) {
   return OutputDirectoryNotifier();

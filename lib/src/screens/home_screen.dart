@@ -4,6 +4,7 @@ import '../providers/conversion_provider.dart';
 import '../widgets/file_drop_zone.dart';
 import '../widgets/convert_panel.dart';
 import '../widgets/progress_list.dart';
+import '../widgets/resizable_divider.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -11,6 +12,9 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final horizontalRatio = ref.watch(horizontalPanelRatioProvider);
+    final verticalRatio = ref.watch(verticalPanelRatioProvider);
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -29,33 +33,71 @@ class HomeScreen extends ConsumerWidget {
               // Header
               _buildHeader(context),
 
-              // Main content
+              // Main content with vertical resizer
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left panel - File drop zone
-                      const Expanded(
-                        flex: 3,
-                        child: FileDropZone(),
-                      ),
+                child: Column(
+                  children: [
+                    // Top section: horizontal panels
+                    Expanded(
+                      flex: (verticalRatio * 100).round(),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                            child: Row(
+                              children: [
+                                // Left panel - File drop zone
+                                SizedBox(
+                                  width: (constraints.maxWidth - 48) *
+                                      horizontalRatio,
+                                  child: const FileDropZone(),
+                                ),
 
-                      const SizedBox(width: 24),
+                                // Horizontal resizable divider
+                                ResizableDivider(
+                                  direction: Axis.vertical,
+                                  initialSize: horizontalRatio,
+                                  minSize: 0.2,
+                                  maxSize: 0.8,
+                                  onResize: (value) {
+                                    ref
+                                        .read(horizontalPanelRatioProvider
+                                            .notifier)
+                                        .state = value;
+                                  },
+                                ),
 
-                      // Right panel - Convert options
-                      const Expanded(
-                        flex: 2,
-                        child: ConvertPanel(),
+                                // Right panel - Convert options
+                                Expanded(
+                                  child: const ConvertPanel(),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
-                    ],
-                  ),
+                    ),
+
+                    // Vertical resizable divider
+                    ResizableDivider(
+                      direction: Axis.horizontal,
+                      initialSize: verticalRatio,
+                      minSize: 0.3,
+                      maxSize: 0.9,
+                      onResize: (value) {
+                        ref.read(verticalPanelRatioProvider.notifier).state =
+                            value;
+                      },
+                    ),
+
+                    // Bottom section - Progress list
+                    Expanded(
+                      flex: ((1 - verticalRatio) * 100).round(),
+                      child: const ProgressList(),
+                    ),
+                  ],
                 ),
               ),
-
-              // Progress list
-              const ProgressList(),
             ],
           ),
         ),
@@ -93,9 +135,7 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
-
           const Spacer(),
-
           // Settings button
           IconButton(
             onPressed: () {
