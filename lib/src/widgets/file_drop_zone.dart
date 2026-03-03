@@ -40,9 +40,16 @@ class FileDropZone extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.2),
                 border: Border(
                   bottom: BorderSide(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outlineVariant
+                        .withValues(alpha: 0.35),
                   ),
                 ),
               ),
@@ -102,19 +109,36 @@ class FileDropZone extends ConsumerWidget {
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
     return Center(
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.move_to_inbox_outlined,
             size: 48,
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.45),
           ),
           const SizedBox(height: 12),
           Text(
             'Drop files here',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'or click + to add files',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () async {
+              await ref.read(fileListProvider.notifier).pickFiles();
+            },
+            icon: const Icon(Icons.add, size: 16),
+            label: const Text('Add Files'),
           ),
         ],
       ),

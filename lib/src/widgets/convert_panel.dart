@@ -21,9 +21,16 @@ class ConvertPanel extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: 0.2),
               border: Border(
                 bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outlineVariant
+                      .withValues(alpha: 0.35),
                 ),
               ),
             ),
@@ -42,13 +49,15 @@ class ConvertPanel extends ConsumerWidget {
                       ),
                 ),
                 const Spacer(),
-                if (files.isNotEmpty && !isConverting)
+                if (!isConverting)
                   SizedBox(
                     height: 28,
                     child: FilledButton.icon(
-                      onPressed: () {
-                        ref.read(conversionProvider).startConversion();
-                      },
+                      onPressed: files.isEmpty
+                          ? null
+                          : () {
+                              ref.read(conversionProvider).startConversion();
+                            },
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
@@ -539,7 +548,7 @@ class ConvertPanel extends ConsumerWidget {
         const SizedBox(height: 6),
         DropdownButtonFormField<int?>(
           isDense: true,
-          value: audioSampleRate,
+          initialValue: audioSampleRate,
           decoration: InputDecoration(
             isDense: true,
             border: OutlineInputBorder(

@@ -19,6 +19,8 @@ class SettingsScreen extends ConsumerWidget {
           _buildThemeSection(context, ref, settings),
           const Divider(),
           _buildLanguageSection(context, ref, settings),
+          const Divider(),
+          _buildPerformanceSection(context, ref, settings),
         ],
       ),
     );
@@ -56,6 +58,22 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildPerformanceSection(
+      BuildContext context, WidgetRef ref, AppSettings settings) {
+    return _SettingsSection(
+      title: 'Performance',
+      icon: Icons.speed_outlined,
+      children: [
+        _SettingsTile(
+          title: 'Max Concurrent Conversions',
+          subtitle: '${settings.maxConcurrentConversions} at a time',
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _showMaxConcurrentDialog(context, ref, settings),
+        ),
+      ],
+    );
+  }
+
   String _getThemeName(AppTheme theme) {
     switch (theme) {
       case AppTheme.system:
@@ -88,15 +106,17 @@ class SettingsScreen extends ConsumerWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: AppTheme.values.map((theme) {
-              return RadioListTile<AppTheme>(
+              final selected = settings.theme == theme;
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                  size: 20,
+                ),
                 title: Text(_getThemeName(theme)),
-                value: theme,
-                groupValue: settings.theme,
-                onChanged: (value) {
-                  if (value != null) {
-                    ref.read(settingsProvider.notifier).setTheme(value);
-                    Navigator.of(context).pop();
-                  }
+                onTap: () {
+                  ref.read(settingsProvider.notifier).setTheme(theme);
+                  Navigator.of(context).pop();
                 },
               );
             }).toList(),
@@ -116,15 +136,50 @@ class SettingsScreen extends ConsumerWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: AppLanguage.values.map((language) {
-              return RadioListTile<AppLanguage>(
+              final selected = settings.language == language;
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                  size: 20,
+                ),
                 title: Text(_getLanguageName(language)),
-                value: language,
-                groupValue: settings.language,
-                onChanged: (value) {
-                  if (value != null) {
-                    ref.read(settingsProvider.notifier).setLanguage(value);
-                    Navigator.of(context).pop();
-                  }
+                onTap: () {
+                  ref.read(settingsProvider.notifier).setLanguage(language);
+                  Navigator.of(context).pop();
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showMaxConcurrentDialog(
+      BuildContext context, WidgetRef ref, AppSettings settings) {
+    const choices = [1, 2, 3, 4];
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Max Concurrent Conversions'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: choices.map((value) {
+              final selected = settings.maxConcurrentConversions == value;
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                  size: 20,
+                ),
+                title: Text('$value at a time'),
+                onTap: () {
+                  ref
+                      .read(settingsProvider.notifier)
+                      .setMaxConcurrentConversions(value);
+                  Navigator.of(context).pop();
                 },
               );
             }).toList(),

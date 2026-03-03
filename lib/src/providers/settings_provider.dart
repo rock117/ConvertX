@@ -17,19 +17,24 @@ enum AppLanguage {
 class AppSettings {
   final AppTheme theme;
   final AppLanguage language;
+  final int maxConcurrentConversions;
 
   const AppSettings({
     this.theme = AppTheme.system,
     this.language = AppLanguage.system,
+    this.maxConcurrentConversions = 2,
   });
 
   AppSettings copyWith({
     AppTheme? theme,
     AppLanguage? language,
+    int? maxConcurrentConversions,
   }) {
     return AppSettings(
       theme: theme ?? this.theme,
       language: language ?? this.language,
+      maxConcurrentConversions:
+          maxConcurrentConversions ?? this.maxConcurrentConversions,
     );
   }
 
@@ -40,7 +45,6 @@ class AppSettings {
       case AppLanguage.chinese:
         return const Locale('zh');
       case AppLanguage.system:
-      default:
         return null;
     }
   }
@@ -52,7 +56,6 @@ class AppSettings {
       case AppTheme.dark:
         return ThemeMode.dark;
       case AppTheme.system:
-      default:
         return ThemeMode.system;
     }
   }
@@ -61,6 +64,7 @@ class AppSettings {
 class SettingsNotifier extends StateNotifier<AppSettings> {
   static const _themeKey = 'app_theme';
   static const _languageKey = 'app_language';
+  static const _maxConcurrentConversionsKey = 'max_concurrent_conversions';
 
   SettingsNotifier() : super(const AppSettings()) {
     _loadSettings();
@@ -71,10 +75,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
     final themeIndex = prefs.getInt(_themeKey) ?? 0;
     final languageIndex = prefs.getInt(_languageKey) ?? 0;
+    final maxConcurrent = prefs.getInt(_maxConcurrentConversionsKey) ?? 2;
+    final safeMaxConcurrent = maxConcurrent.clamp(1, 4);
 
     state = AppSettings(
       theme: AppTheme.values[themeIndex],
       language: AppLanguage.values[languageIndex],
+      maxConcurrentConversions: safeMaxConcurrent,
     );
   }
 
@@ -88,6 +95,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_languageKey, language.index);
     state = state.copyWith(language: language);
+  }
+
+  Future<void> setMaxConcurrentConversions(int value) async {
+    final safeValue = value.clamp(1, 4);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_maxConcurrentConversionsKey, safeValue);
+    state = state.copyWith(maxConcurrentConversions: safeValue);
   }
 }
 

@@ -94,13 +94,16 @@ class _ProgressListState extends ConsumerState<ProgressList> {
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
                 ),
                 bottom: BorderSide(
-                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
                 ),
               ),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: 0.2),
             ),
             child: Row(
               children: [
@@ -153,27 +156,32 @@ class _ProgressListState extends ConsumerState<ProgressList> {
                     },
                   )
                 : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.inbox_outlined,
-                          size: 32,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant
-                              .withValues(alpha: 0.3),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      child: Align(
+                        alignment: const Alignment(0, -0.2),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.inbox_outlined,
+                              size: 34,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.45),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'No active tasks',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'No active tasks',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurfaceVariant,
-                              ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
           ),

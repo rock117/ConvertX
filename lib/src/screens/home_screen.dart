@@ -31,36 +31,39 @@ class HomeScreen extends ConsumerWidget {
                   // Top section: horizontal panels
                   Expanded(
                     flex: (verticalRatio * 100).round(),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Row(
-                          children: [
-                            // Left panel - File drop zone
-                            SizedBox(
-                              width: constraints.maxWidth * horizontalRatio,
-                              child: const FileDropZone(),
-                            ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return Row(
+                            children: [
+                              // Left panel - File drop zone
+                              SizedBox(
+                                width: constraints.maxWidth * horizontalRatio,
+                                child: const FileDropZone(),
+                              ),
 
-                            // Horizontal resizable divider
-                            ResizableDivider(
-                              direction: Axis.vertical,
-                              initialSize: horizontalRatio,
-                              minSize: 0.2,
-                              maxSize: 0.8,
-                              onResize: (value) {
-                                ref
-                                    .read(horizontalPanelRatioProvider.notifier)
-                                    .state = value;
-                              },
-                            ),
+                              // Horizontal resizable divider
+                              ResizableDivider(
+                                direction: Axis.vertical,
+                                initialSize: horizontalRatio,
+                                minSize: 0.2,
+                                maxSize: 0.8,
+                                onResize: (value) {
+                                  ref
+                                      .read(horizontalPanelRatioProvider.notifier)
+                                      .state = value;
+                                },
+                              ),
 
-                            // Right panel - Convert options
-                            Expanded(
-                              child: const ConvertPanel(),
-                            ),
-                          ],
-                        );
-                      },
+                              // Right panel - Convert options
+                              const Expanded(
+                                child: ConvertPanel(),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ),
 
@@ -79,7 +82,10 @@ class HomeScreen extends ConsumerWidget {
                   // Bottom section - Progress list
                   Expanded(
                     flex: ((1 - verticalRatio) * 100).round(),
-                    child: const ProgressList(),
+                    child: const Padding(
+                      padding: EdgeInsets.fromLTRB(12, 8, 12, 12),
+                      child: ProgressList(),
+                    ),
                   ),
                 ],
               ),
