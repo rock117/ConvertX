@@ -63,6 +63,81 @@ String _resolveRustDylibPath() {
 class ConvertXApp extends ConsumerWidget {
   const ConvertXApp({super.key});
 
+  ThemeData _buildLightTheme() {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF3B82F6),
+      brightness: Brightness.light,
+    );
+
+    return ThemeData(
+      colorScheme: scheme,
+      useMaterial3: true,
+      fontFamily: 'Roboto',
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    final base = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF007ACC),
+      brightness: Brightness.dark,
+    );
+
+    final scheme = base.copyWith(
+      primary: const Color(0xFF3794FF),
+      onPrimary: const Color(0xFF001B3D),
+      primaryContainer: const Color(0xFF094771),
+      onPrimaryContainer: const Color(0xFFC7E4FF),
+      onSurface: const Color(0xFFD4D4D4),
+      onSurfaceVariant: const Color(0xFFB0B0B0),
+      surface: const Color(0xFF1E1E1E),
+      surfaceContainerLowest: const Color(0xFF181818),
+      surfaceContainerLow: const Color(0xFF202020),
+      surfaceContainer: const Color(0xFF252526),
+      surfaceContainerHigh: const Color(0xFF2D2D2D),
+      surfaceContainerHighest: const Color(0xFF333333),
+      outline: const Color(0xFF3E3E42),
+      outlineVariant: const Color(0xFF2A2A2A),
+    );
+
+    return ThemeData(
+      colorScheme: scheme,
+      useMaterial3: true,
+      fontFamily: 'Roboto',
+      scaffoldBackgroundColor: scheme.surface,
+      canvasColor: scheme.surface,
+      dividerColor: scheme.outlineVariant.withValues(alpha: 0.35),
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.surfaceContainer,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surfaceContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: scheme.surfaceContainerHigh,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: scheme.primary, width: 1.2),
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        iconColor: scheme.onSurfaceVariant,
+        textColor: scheme.onSurface,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
@@ -70,22 +145,8 @@ class ConvertXApp extends ConsumerWidget {
     return MaterialApp(
       title: 'ConvertX',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        fontFamily: 'Roboto',
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6366F1),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        fontFamily: 'Roboto',
-      ),
+      theme: _buildLightTheme(),
+      darkTheme: _buildDarkTheme(),
       themeMode: settings.getThemeMode(),
       locale: settings.getLocale(),
       localizationsDelegates: const [
