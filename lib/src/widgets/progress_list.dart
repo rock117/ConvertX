@@ -37,7 +37,7 @@ class _ProgressListState extends ConsumerState<ProgressList> {
     final elapsed = _formatDuration(duration);
 
     if (ext == 'epub') {
-      return 'EPUB -> PDF: running external tool (pandoc/ebook-convert), may take a few minutes... ($elapsed)';
+      return 'EPUB -> PDF: running external tool... ($elapsed)';
     }
 
     return 'Converting... ($elapsed)';
@@ -60,9 +60,9 @@ class _ProgressListState extends ConsumerState<ProgressList> {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Conversion Error - ${task.fileName}'),
+        title: Text('Conversion Error - ${task.fileName}', style: const TextStyle(fontSize: 16)),
         content: SingleChildScrollView(
-          child: SelectableText(error),
+          child: SelectableText(error, style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
         ),
         actions: [
           TextButton(
@@ -84,120 +84,100 @@ class _ProgressListState extends ConsumerState<ProgressList> {
     final hasContent = tasks.isNotEmpty || isDownloadingFfmpeg;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
+      color: Theme.of(context).colorScheme.surface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.history,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Tasks',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const Spacer(),
+                if (hasContent)
+                  TextButton(
+                    onPressed: () {
+                      ref.read(conversionTasksProvider.notifier).clearCompleted();
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: const Size(0, 24),
+                    ),
+                    child: const Text('Clear Completed', style: TextStyle(fontSize: 12)),
+                  ),
+              ],
+            ),
+          ),
+
+          // Content area
+          Expanded(
+            child: hasContent
+                ? ListView.separated(
+                    padding: EdgeInsets.zero,
+                    itemCount: tasks.length + (isDownloadingFfmpeg ? 1 : 0),
+                    separatorBuilder: (context, index) => Divider(
+                      height: 1,
+                      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
+                    itemBuilder: (context, index) {
+                      if (isDownloadingFfmpeg && index == 0) {
+                        return _buildFfmpegDownloadItem(context);
+                      }
+
+                      final taskIndex = isDownloadingFfmpeg ? index - 1 : index;
+                      final task = tasks[taskIndex];
+                      return _buildTaskItem(context, task);
+                    },
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.history,
-                          size: 20,
-                          color: Theme.of(context).colorScheme.primary,
+                          Icons.inbox_outlined,
+                          size: 32,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant
+                              .withValues(alpha: 0.3),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'Conversion Tasks',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          'No active tasks',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                              ),
                         ),
-                        const Spacer(),
-                        if (hasContent)
-                          TextButton(
-                            onPressed: () {
-                              ref
-                                  .read(conversionTasksProvider.notifier)
-                                  .clearCompleted();
-                            },
-                            child: const Text('Clear Completed'),
-                          ),
                       ],
                     ),
                   ),
-
-                  // Content area
-                  if (hasContent)
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: tasks.length +
-                          (ref.watch(ffmpegProvider).status ==
-                                      FfmpegDownloadStatus.downloading ||
-                                  ref.watch(ffmpegProvider).status ==
-                                      FfmpegDownloadStatus.extracting
-                              ? 1
-                              : 0),
-                      itemBuilder: (context, index) {
-                        final isDownloadingFfmpeg =
-                            ref.watch(ffmpegProvider).status ==
-                                    FfmpegDownloadStatus.downloading ||
-                                ref.watch(ffmpegProvider).status ==
-                                    FfmpegDownloadStatus.extracting;
-                        if (isDownloadingFfmpeg && index == 0) {
-                          return _buildFfmpegDownloadItem(context);
-                        }
-
-                        final taskIndex =
-                            isDownloadingFfmpeg ? index - 1 : index;
-                        final task = tasks[taskIndex];
-                        return _buildTaskItem(context, task);
-                      },
-                    )
-                  else
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.inbox_outlined,
-                              size: 48,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant
-                                  .withValues(alpha: 0.5),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Drop files above to start converting them',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -207,13 +187,16 @@ class _ProgressListState extends ConsumerState<ProgressList> {
     final isExtracting = state.status == FfmpegDownloadStatus.extracting;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Icon(
-            Icons.cloud_download,
-            size: 20,
-            color: Theme.of(context).colorScheme.primary,
+          SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              value: isExtracting ? null : state.progress,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -221,30 +204,23 @@ class _ProgressListState extends ConsumerState<ProgressList> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Downloading FFmpeg...',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  'Downloading FFmpeg component...',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   isExtracting
-                      ? 'Extracting...'
-                      : 'Downloading: ${(state.progress * 100).toStringAsFixed(1)}%',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                      ? 'Extracting files...'
+                      : '${(state.progress * 100).toStringAsFixed(1)}% completed',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 11,
                       ),
-                ),
-                LinearProgressIndicator(
-                  value: isExtracting ? null : state.progress,
-                  backgroundColor:
-                      Theme.of(context).colorScheme.surfaceContainerHigh,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 30), // Placeholder for align with icon buttons
         ],
       ),
     );
@@ -289,294 +265,232 @@ class _ProgressListState extends ConsumerState<ProgressList> {
       } catch (_) {}
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          // Status icon
-          Icon(
-            task.status == ConversionStatus.completed
-                ? Icons.check_circle
-                : task.status == ConversionStatus.failed
-                    ? Icons.error
-                    : task.status == ConversionStatus.converting
-                        ? Icons.sync
-                        : Icons.schedule,
-            size: 20,
-            color: task.status == ConversionStatus.completed
-                ? Colors.green
-                : task.status == ConversionStatus.failed
-                    ? Colors.red
-                    : Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(width: 12),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {}, // Hover effect
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Status icon
+              SizedBox(
+                width: 20,
+                child: Center(
+                  child: task.status == ConversionStatus.converting
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(
+                          task.status == ConversionStatus.completed
+                              ? Icons.check_circle
+                              : task.status == ConversionStatus.failed
+                                  ? Icons.error
+                                  : Icons.schedule,
+                          size: 16,
+                          color: task.status == ConversionStatus.completed
+                              ? Colors.green
+                              : task.status == ConversionStatus.failed
+                                  ? Colors.red
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                ),
+              ),
+              const SizedBox(width: 12),
 
-          // File name and info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              // File name and info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        task.fileName,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            task.fileName,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (fileSize.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            outputFileSize != null
+                                ? '$fileSize → $outputFileSize'
+                                : fileSize,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                  fontFamily: 'monospace',
+                                  fontSize: 11,
+                                ),
+                          ),
+                          if (compressionRatio != null) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: compressionRatio.startsWith('-')
+                                    ? Colors.green.withValues(alpha: 0.1)
+                                    : Colors.orange.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                compressionRatio,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: compressionRatio.startsWith('-')
+                                          ? Colors.green[700]
+                                          : Colors.orange[700],
+                                      fontFamily: 'monospace',
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+
+                    // Status text and path
+                    if (task.status == ConversionStatus.completed && task.outputPath != null)
+                      Text(
+                        'Completed in ${_formatDuration(duration)} • ${task.outputPath}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (fileSize.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        outputFileSize != null
-                            ? '$fileSize → $outputFileSize'
-                            : fileSize,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                              fontFamily: 'monospace',
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              fontSize: 11,
+                            ),
+                      )
+                    else if (task.status == ConversionStatus.failed && task.error != null)
+                      Text(
+                        task.error!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.error,
+                              fontSize: 11,
+                            ),
+                      )
+                    else if (task.status == ConversionStatus.converting)
+                      Text(
+                        _convertingHint(task, duration),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 11,
+                            ),
+                      )
+                    else
+                      Text(
+                        'Waiting...',
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                               fontSize: 11,
                             ),
                       ),
-                      if (compressionRatio != null) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: compressionRatio.startsWith('-')
-                                ? Colors.green.withValues(alpha: 0.1)
-                                : Colors.orange.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            compressionRatio,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: compressionRatio.startsWith('-')
-                                      ? Colors.green[700]
-                                      : Colors.orange[700],
-                                  fontFamily: 'monospace',
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ),
-                      ],
-                    ],
                   ],
                 ),
-                const SizedBox(height: 4),
+              ),
 
-                // Status badge
-                _buildStatusBadge(context, task, duration),
+              const SizedBox(width: 12),
 
-                if (task.status == ConversionStatus.completed &&
-                    task.outputPath != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      task.outputPath!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontSize: 11,
-                          ),
+              // Action buttons
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Completed: reverse convert + open folder
+                  if (task.status == ConversionStatus.completed) ...[
+                    IconButton(
+                      icon: const Icon(Icons.swap_horiz, size: 16),
+                      onPressed: () {
+                        ref.read(conversionProvider).reverseConvert(task.id);
+                      },
+                      tooltip: 'Convert back',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                      splashRadius: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                  ),
-                if (task.status == ConversionStatus.failed &&
-                    task.error != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      task.error!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                            fontSize: 11,
-                          ),
+                    IconButton(
+                      icon: const Icon(Icons.folder_open, size: 16),
+                      onPressed: () {
+                        ref
+                            .read(conversionProvider)
+                            .openOutputFolder(task.outputPath!);
+                      },
+                      tooltip: 'Open folder',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                      splashRadius: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
-                  ),
-                if (task.status == ConversionStatus.converting)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: LinearProgressIndicator(
-                      value: null,
-                      backgroundColor:
-                          Theme.of(context).colorScheme.surfaceContainerHigh,
+                  ],
+
+                  // Converting: cancel button
+                  if (task.status == ConversionStatus.converting)
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 16),
+                      onPressed: () {
+                        ref.read(conversionTasksProvider.notifier).updateTask(
+                              task.id,
+                              status: ConversionStatus.cancelled,
+                              endedAt: DateTime.now(),
+                              clearOutputPath: true,
+                              error: 'Cancelled',
+                            );
+                      },
+                      tooltip: 'Cancel',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                      splashRadius: 16,
+                      color: Theme.of(context).colorScheme.error,
                     ),
-                  ),
-              ],
-            ),
-          ),
 
-          const SizedBox(width: 12),
-
-          // Action buttons
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Completed: reverse convert + open folder
-              if (task.status == ConversionStatus.completed) ...[
-                IconButton(
-                  icon: const Icon(Icons.swap_horiz, size: 18),
-                  onPressed: () {
-                    ref.read(conversionProvider).reverseConvert(task.id);
-                  },
-                  tooltip: 'Convert back to original format',
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.folder_open, size: 18),
-                  onPressed: () {
-                    ref
-                        .read(conversionProvider)
-                        .openOutputFolder(task.outputPath!);
-                  },
-                  tooltip: 'Open in folder',
-                ),
-              ],
-
-              // Converting: cancel button
-              if (task.status == ConversionStatus.converting)
-                IconButton(
-                  icon: const Icon(Icons.close, size: 18),
-                  onPressed: () {
-                    ref.read(conversionTasksProvider.notifier).updateTask(
-                          task.id,
-                          status: ConversionStatus.cancelled,
-                          endedAt: DateTime.now(),
-                          clearOutputPath: true,
-                          error: 'Cancelled by user',
-                        );
-                  },
-                  tooltip: 'Cancel',
-                  color: Theme.of(context).colorScheme.error,
-                ),
-
-              // Failed: view error + retry
-              if (task.status == ConversionStatus.failed) ...[
-                if (task.error != null)
-                  IconButton(
-                    icon: const Icon(Icons.info_outline, size: 18),
-                    onPressed: () => _showErrorDetails(context, task),
-                    tooltip: 'View error details',
-                  ),
-                IconButton(
-                  icon: const Icon(Icons.refresh, size: 18),
-                  onPressed: () {
-                    ref.read(conversionProvider).retryTask(task.id);
-                  },
-                  tooltip: 'Retry',
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ],
-
-              // Cancelled: retry
-              if (task.status == ConversionStatus.cancelled)
-                IconButton(
-                  icon: const Icon(Icons.refresh, size: 18),
-                  onPressed: () {
-                    ref.read(conversionProvider).retryTask(task.id);
-                  },
-                  tooltip: 'Retry',
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                  // Failed/Cancelled: view error + retry
+                  if (task.status == ConversionStatus.failed || task.status == ConversionStatus.cancelled) ...[
+                    if (task.error != null && task.status == ConversionStatus.failed)
+                      IconButton(
+                        icon: const Icon(Icons.info_outline, size: 16),
+                        onPressed: () => _showErrorDetails(context, task),
+                        tooltip: 'View error',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                        splashRadius: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, size: 16),
+                      onPressed: () {
+                        ref.read(conversionProvider).retryTask(task.id);
+                      },
+                      tooltip: 'Retry',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                      splashRadius: 16,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(
-      BuildContext context, ConversionTask task, Duration duration) {
-    Color bgColor;
-    Color textColor;
-    String text;
-    IconData? icon;
-
-    switch (task.status) {
-      case ConversionStatus.pending:
-        bgColor = Colors.grey.withValues(alpha: 0.1);
-        textColor = Colors.grey[700]!;
-        text = 'Waiting';
-        icon = Icons.schedule;
-        break;
-      case ConversionStatus.converting:
-        bgColor = Theme.of(context).colorScheme.primary.withValues(alpha: 0.1);
-        textColor = Theme.of(context).colorScheme.primary;
-        text = _convertingHint(task, duration);
-        icon = Icons.sync;
-        break;
-      case ConversionStatus.completed:
-        bgColor = Colors.green.withValues(alpha: 0.1);
-        textColor = Colors.green[700]!;
-        text = 'Completed in ${_formatDuration(duration)}';
-        icon = Icons.check_circle_outline;
-        break;
-      case ConversionStatus.failed:
-        bgColor = Theme.of(context).colorScheme.error.withValues(alpha: 0.1);
-        textColor = Theme.of(context).colorScheme.error;
-        text = 'Failed after ${_formatDuration(duration)}';
-        icon = Icons.error_outline;
-        break;
-      case ConversionStatus.cancelled:
-        bgColor = Colors.orange.withValues(alpha: 0.1);
-        textColor = Colors.orange[700]!;
-        text = 'Cancelled';
-        icon = Icons.cancel_outlined;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null && task.status != ConversionStatus.converting) ...[
-            Icon(icon, size: 12, color: textColor),
-            const SizedBox(width: 4),
-          ],
-          if (task.status == ConversionStatus.converting)
-            SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(textColor),
-              ),
-            )
-          else
-            Text(
-              text,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          if (task.status == ConversionStatus.converting) ...[
-            const SizedBox(width: 6),
-            Text(
-              text,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

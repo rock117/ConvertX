@@ -13,111 +13,141 @@ class ConvertPanel extends ConsumerWidget {
     final showAdvanced = ref.watch(showAdvancedOptionsProvider);
 
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      color: Theme.of(context).colorScheme.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
-          Padding(
-            padding: const EdgeInsets.all(20),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
             child: Row(
               children: [
                 Icon(
                   Icons.tune,
-                  color: Theme.of(context).colorScheme.primary,
+                  size: 18,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Convert Settings',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  'Settings',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                 ),
+                const Spacer(),
+                if (files.isNotEmpty && !isConverting)
+                  SizedBox(
+                    height: 28,
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        ref.read(conversionProvider).startConversion();
+                      },
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      icon: const Icon(Icons.play_arrow, size: 16),
+                      label: const Text('Convert'),
+                    ),
+                  )
+                else if (isConverting)
+                  SizedBox(
+                    height: 28,
+                    child: FilledButton.icon(
+                      onPressed: null,
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      icon: const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      label: const Text('Converting'),
+                    ),
+                  ),
               ],
             ),
           ),
 
-          const Divider(height: 1),
-
           // Settings content (scrollable)
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Output format
                   _buildFormatSelector(context, ref, outputFormat),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // Output directory
                   _buildOutputDirectory(context, ref),
 
                   const SizedBox(height: 16),
+                  Divider(
+                    height: 1,
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  ),
+                  const SizedBox(height: 12),
 
                   // Advanced options toggle
-                  InkWell(
-                    onTap: () {
-                      ref.read(showAdvancedOptionsProvider.notifier).state =
-                          !showAdvanced;
-                    },
-                    child: Row(
-                      children: [
-                        Icon(
-                          showAdvanced ? Icons.expand_less : Icons.expand_more,
-                          color: Theme.of(context).colorScheme.primary,
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        ref.read(showAdvancedOptionsProvider.notifier).state =
+                            !showAdvanced;
+                      },
+                      borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        child: Row(
+                          children: [
+                            AnimatedRotation(
+                              turns: showAdvanced ? 0.25 : 0.0,
+                              duration: const Duration(milliseconds: 200),
+                              child: Icon(
+                                Icons.chevron_right,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Advanced Options',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Advanced Options',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
 
                   // Advanced options
-                  if (showAdvanced) ...[
-                    const SizedBox(height: 16),
-                    _buildAdvancedOptions(context, ref, outputFormat),
-                  ],
-
-                  const SizedBox(height: 24),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topCenter,
+                    child: showAdvanced
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 12, left: 4),
+                            child: _buildAdvancedOptions(context, ref, outputFormat),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
                 ],
-              ),
-            ),
-          ),
-
-          // Convert button (fixed at bottom)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: FilledButton.icon(
-              onPressed: (files.isEmpty || isConverting)
-                  ? null
-                  : () {
-                      ref.read(conversionProvider).startConversion();
-                    },
-              icon: isConverting
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.transform),
-              label: Text(isConverting ? 'Converting...' : 'Convert'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
           ),
@@ -134,12 +164,13 @@ class ConvertPanel extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Output Format',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+          'Format',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         supportedFormatsAsync.when(
           data: (supportedFormats) {
             final items = supportedFormats.map((f) {
@@ -151,8 +182,7 @@ class ConvertPanel extends ConsumerWidget {
                       ? '${f.toUpperCase()} - $description'
                       : f.toUpperCase(),
                   style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'monospace',
+                    fontSize: 13,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -174,16 +204,19 @@ class ConvertPanel extends ConsumerWidget {
             }
 
             return DropdownButtonFormField<String>(
+              isDense: true,
               initialValue: safeValue,
               decoration: InputDecoration(
+                isDense: true,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 helperText: hasItems
                     ? null
                     : 'No available output formats for this file type',
+                helperStyle: const TextStyle(fontSize: 11),
               ),
               items: hasItems ? items : const <DropdownMenuItem<String>>[],
               onChanged: hasItems
@@ -197,7 +230,7 @@ class ConvertPanel extends ConsumerWidget {
           },
           loading: () => const LinearProgressIndicator(minHeight: 2),
           error: (_, __) => Text(
-            'Failed to get supported output formats',
+            'Failed to get supported formats',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.error,
                 ),
@@ -255,28 +288,29 @@ class ConvertPanel extends ConsumerWidget {
       children: [
         Text(
           'Output Folder',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Row(
           children: [
             Expanded(
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outline,
+                    color: Theme.of(context).colorScheme.outlineVariant,
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.folder_outlined,
-                      size: 18,
+                      size: 16,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),
@@ -286,6 +320,7 @@ class ConvertPanel extends ConsumerWidget {
                             ? 'Default: Documents/ConvertX_Output'
                             : outputDir,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 12,
                               color: outputDir.isEmpty
                                   ? Theme.of(context)
                                       .colorScheme
@@ -306,8 +341,16 @@ class ConvertPanel extends ConsumerWidget {
                     .read(outputDirectoryProvider.notifier)
                     .pickDirectory();
               },
-              icon: const Icon(Icons.edit_outlined, size: 18),
+              icon: const Icon(Icons.more_horiz, size: 16),
               tooltip: 'Change folder',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              splashRadius: 20,
+              style: IconButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
             ),
           ],
         ),
@@ -355,15 +398,16 @@ class ConvertPanel extends ConsumerWidget {
             children: [
               Icon(
                 Icons.info_outline,
-                size: 16,
+                size: 14,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'No advanced options available for this format',
+                  'No advanced options available for this format.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
                       ),
                 ),
               ),
@@ -380,26 +424,38 @@ class ConvertPanel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Image Quality: $imageQuality%',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        Slider(
-          value: imageQuality.toDouble(),
-          min: 1,
-          max: 100,
-          divisions: 100,
-          label: '$imageQuality%',
-          onChanged: (value) {
-            ref.read(imageQualityProvider.notifier).state = value.round();
-          },
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Higher quality = larger file size',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Image Quality',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
+            ),
+            Text(
+              '$imageQuality%',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontFamily: 'monospace',
+              ),
+            ),
+          ],
+        ),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 2,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+          ),
+          child: Slider(
+            value: imageQuality.toDouble(),
+            min: 1,
+            max: 100,
+            divisions: 100,
+            onChanged: (value) {
+              ref.read(imageQualityProvider.notifier).state = value.round();
+            },
+          ),
         ),
       ],
     );
@@ -419,61 +475,84 @@ class ConvertPanel extends ConsumerWidget {
       children: [
         // Quality/Bitrate (for lossy formats)
         if (!isLossless) ...[
-          Text(
-            outputFormat.toLowerCase() == 'mp3' ||
-                    outputFormat.toLowerCase() == 'ogg'
-                ? 'Quality: ${audioQuality} (0=best, 9=worst)'
-                : 'Bitrate: ${audioBitrate ?? 192} kbps',
-            style: Theme.of(context).textTheme.bodyMedium,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                outputFormat.toLowerCase() == 'mp3' ||
+                        outputFormat.toLowerCase() == 'ogg'
+                    ? 'Quality (Lower is better)'
+                    : 'Bitrate',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                outputFormat.toLowerCase() == 'mp3' ||
+                        outputFormat.toLowerCase() == 'ogg'
+                    ? audioQuality.toString()
+                    : '${audioBitrate ?? 192} kbps',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
-          if (outputFormat.toLowerCase() == 'mp3' ||
-              outputFormat.toLowerCase() == 'ogg')
-            Slider(
-              value: audioQuality.toDouble(),
-              min: 0,
-              max: 9,
-              divisions: 9,
-              label: audioQuality.toString(),
-              onChanged: (value) {
-                ref.read(audioQualityProvider.notifier).state = value.round();
-              },
-            )
-          else
-            Slider(
-              value: (audioBitrate ?? 192).toDouble(),
-              min: 64,
-              max: 320,
-              divisions: 16,
-              label: '${audioBitrate ?? 192} kbps',
-              onChanged: (value) {
-                ref.read(audioBitrateProvider.notifier).state = value.round();
-              },
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 2,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
             ),
+            child: outputFormat.toLowerCase() == 'mp3' ||
+                    outputFormat.toLowerCase() == 'ogg'
+                ? Slider(
+                    value: audioQuality.toDouble(),
+                    min: 0,
+                    max: 9,
+                    divisions: 9,
+                    onChanged: (value) {
+                      ref.read(audioQualityProvider.notifier).state = value.round();
+                    },
+                  )
+                : Slider(
+                    value: (audioBitrate ?? 192).toDouble(),
+                    min: 64,
+                    max: 320,
+                    divisions: 16,
+                    onChanged: (value) {
+                      ref.read(audioBitrateProvider.notifier).state = value.round();
+                    },
+                  ),
+          ),
           const SizedBox(height: 12),
         ],
 
         // Sample rate
         Text(
           'Sample Rate',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         DropdownButtonFormField<int?>(
+          isDense: true,
           value: audioSampleRate,
           decoration: InputDecoration(
+            isDense: true,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(6),
             ),
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           ),
           items: const [
-            DropdownMenuItem(value: null, child: Text('Auto')),
-            DropdownMenuItem(value: 44100, child: Text('44.1 kHz (CD)')),
-            DropdownMenuItem(value: 48000, child: Text('48 kHz (DVD)')),
-            DropdownMenuItem(value: 96000, child: Text('96 kHz (HD)')),
+            DropdownMenuItem(value: null, child: Text('Auto', style: TextStyle(fontSize: 13))),
+            DropdownMenuItem(value: 44100, child: Text('44.1 kHz (CD)', style: TextStyle(fontSize: 13))),
+            DropdownMenuItem(value: 48000, child: Text('48 kHz (DVD)', style: TextStyle(fontSize: 13))),
+            DropdownMenuItem(value: 96000, child: Text('96 kHz (HD)', style: TextStyle(fontSize: 13))),
           ],
           onChanged: (value) {
             ref.read(audioSampleRateProvider.notifier).state = value;
@@ -482,9 +561,10 @@ class ConvertPanel extends ConsumerWidget {
         if (isLossless) ...[
           const SizedBox(height: 8),
           Text(
-            'Lossless format - no quality loss',
+            'Lossless format - quality parameters are not applicable.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 11,
                 ),
           ),
         ],

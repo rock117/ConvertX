@@ -16,90 +16,75 @@ class HomeScreen extends ConsumerWidget {
     final verticalRatio = ref.watch(verticalPanelRatioProvider);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
-              Theme.of(context).colorScheme.surface,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              _buildHeader(context),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            _buildHeader(context),
+            const Divider(height: 1, thickness: 1),
 
-              // Main content with vertical resizer
-              Expanded(
-                child: Column(
-                  children: [
-                    // Top section: horizontal panels
-                    Expanded(
-                      flex: (verticalRatio * 100).round(),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-                            child: Row(
-                              children: [
-                                // Left panel - File drop zone
-                                SizedBox(
-                                  width: (constraints.maxWidth - 48) *
-                                      horizontalRatio,
-                                  child: const FileDropZone(),
-                                ),
-
-                                // Horizontal resizable divider
-                                ResizableDivider(
-                                  direction: Axis.vertical,
-                                  initialSize: horizontalRatio,
-                                  minSize: 0.2,
-                                  maxSize: 0.8,
-                                  onResize: (value) {
-                                    ref
-                                        .read(horizontalPanelRatioProvider
-                                            .notifier)
-                                        .state = value;
-                                  },
-                                ),
-
-                                // Right panel - Convert options
-                                Expanded(
-                                  child: const ConvertPanel(),
-                                ),
-                              ],
+            // Main content with vertical resizer
+            Expanded(
+              child: Column(
+                children: [
+                  // Top section: horizontal panels
+                  Expanded(
+                    flex: (verticalRatio * 100).round(),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Row(
+                          children: [
+                            // Left panel - File drop zone
+                            SizedBox(
+                              width: constraints.maxWidth * horizontalRatio,
+                              child: const FileDropZone(),
                             ),
-                          );
-                        },
-                      ),
-                    ),
 
-                    // Vertical resizable divider
-                    ResizableDivider(
-                      direction: Axis.horizontal,
-                      initialSize: verticalRatio,
-                      minSize: 0.3,
-                      maxSize: 0.9,
-                      onResize: (value) {
-                        ref.read(verticalPanelRatioProvider.notifier).state =
-                            value;
+                            // Horizontal resizable divider
+                            ResizableDivider(
+                              direction: Axis.vertical,
+                              initialSize: horizontalRatio,
+                              minSize: 0.2,
+                              maxSize: 0.8,
+                              onResize: (value) {
+                                ref
+                                    .read(horizontalPanelRatioProvider.notifier)
+                                    .state = value;
+                              },
+                            ),
+
+                            // Right panel - Convert options
+                            Expanded(
+                              child: const ConvertPanel(),
+                            ),
+                          ],
+                        );
                       },
                     ),
+                  ),
 
-                    // Bottom section - Progress list
-                    Expanded(
-                      flex: ((1 - verticalRatio) * 100).round(),
-                      child: const ProgressList(),
-                    ),
-                  ],
-                ),
+                  // Vertical resizable divider
+                  ResizableDivider(
+                    direction: Axis.horizontal,
+                    initialSize: verticalRatio,
+                    minSize: 0.3,
+                    maxSize: 0.9,
+                    onResize: (value) {
+                      ref.read(verticalPanelRatioProvider.notifier).state =
+                          value;
+                    },
+                  ),
+
+                  // Bottom section - Progress list
+                  Expanded(
+                    flex: ((1 - verticalRatio) * 100).round(),
+                    child: const ProgressList(),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -107,30 +92,24 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      color: Theme.of(context).colorScheme.surface,
       child: Row(
         children: [
           // Logo and title
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.transform,
-                  color: Theme.of(context).colorScheme.onPrimary,
-                  size: 24,
-                ),
+              Icon(
+                Icons.transform,
+                color: Theme.of(context).colorScheme.primary,
+                size: 24,
               ),
               const SizedBox(width: 12),
               Text(
                 'ConvertX',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
+                      letterSpacing: 0.5,
                     ),
               ),
             ],
@@ -145,8 +124,9 @@ class HomeScreen extends ConsumerWidget {
                 ),
               );
             },
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_outlined, size: 20),
             tooltip: 'Settings',
+            splashRadius: 20,
           ),
         ],
       ),

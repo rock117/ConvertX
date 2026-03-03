@@ -23,47 +23,66 @@ class FileDropZone extends ConsumerWidget {
         ref.read(fileListProvider.notifier).addFiles(paths);
         ref.read(dragStateProvider.notifier).state = false;
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         decoration: BoxDecoration(
           color: dragState
-              ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.5)
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: dragState
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.outline.withOpacity(0.3),
-            width: dragState ? 2 : 1,
+              ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.2)
+              : Theme.of(context).colorScheme.surface,
+          border: Border(
+            right: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
           ),
         ),
         child: Column(
           children: [
             // Header
-            Padding(
-              padding: const EdgeInsets.all(20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
               child: Row(
                 children: [
                   Icon(
                     Icons.folder_open,
-                    color: Theme.of(context).colorScheme.primary,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Files to Convert',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    'Files',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
                   const Spacer(),
                   if (files.isNotEmpty)
-                    TextButton.icon(
+                    TextButton(
                       onPressed: () {
                         ref.read(fileListProvider.notifier).clear();
                       },
-                      icon: const Icon(Icons.clear_all, size: 18),
-                      label: const Text('Clear All'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 24),
+                      ),
+                      child: const Text('Clear', style: TextStyle(fontSize: 12)),
                     ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    onPressed: () async {
+                      await ref.read(fileListProvider.notifier).pickFiles();
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                    tooltip: 'Add files',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                    splashRadius: 16,
+                  ),
                 ],
               ),
             ),
@@ -86,31 +105,16 @@ class FileDropZone extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.cloud_upload_outlined,
-            size: 64,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Drag & Drop files here',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'or',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+            Icons.move_to_inbox_outlined,
+            size: 48,
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: () async {
-              final result = await ref.read(fileListProvider.notifier).pickFiles();
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('Browse Files'),
+          Text(
+            'Drop files here',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
         ],
       ),
@@ -118,36 +122,64 @@ class FileDropZone extends ConsumerWidget {
   }
 
   Widget _buildFileList(BuildContext context, WidgetRef ref, List<String> files) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return ListView.separated(
       itemCount: files.length,
+      separatorBuilder: (context, index) => Divider(
+        height: 1,
+        color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.3),
+      ),
       itemBuilder: (context, index) {
         final file = files[index];
         final fileName = file.split(RegExp(r'[\\/]')).last;
         
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Icon(
-              _getFileIcon(fileName),
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            title: Text(
-              fileName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            subtitle: Text(
-              file,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () {
-                ref.read(fileListProvider.notifier).removeFile(index);
-              },
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {}, // For hover effect
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    _getFileIcon(fileName),
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fileName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        Text(
+                          file,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                    splashRadius: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    onPressed: () {
+                      ref.read(fileListProvider.notifier).removeFile(index);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         );
