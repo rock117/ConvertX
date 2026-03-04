@@ -36,6 +36,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Release artifacts
+/dist/
+
 # Flutter Version Management
 .fvm/
 
