@@ -1,6 +1,9 @@
 use crate::api::{ConvertOptions, ConvertResult};
 use std::path::Path;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 /// Convert media files (audio/video)
 pub fn convert_media(
     input_path: &str,
@@ -78,6 +81,13 @@ fn convert_via_ffmpeg(
         .to_lowercase();
 
     let mut cmd = std::process::Command::new(ffmpeg_cmd);
+
+    #[cfg(target_os = "windows")]
+    {
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+
     cmd.arg("-y") // Overwrite output files without asking
         .arg("-i")
         .arg(input_path)
